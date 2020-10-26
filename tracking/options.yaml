@@ -110,3 +110,6 @@ got10k_experiments:
         root_dir: ~/Videos/otb
         result_dir: ./results/otb
         skip: true
+    uav:
+        root_dir: ~/Videos/uav123
+        result_dir: ./results/

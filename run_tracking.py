@@ -47,12 +47,22 @@ def run_vot_experiments(configuration: dict, display: bool) -> None:
             "'got10k_experiments.vot.version' is required in the experimental configuration."
         )
         return
+    # The GOT-10k tool raises an exception if the 'list_file' doesn't exist, but the exception
+    # message doesn't express what really went wrong. So we check for it here.
+    if "sequence_file" in configuration and not os.path.isfile(
+        configuration["sequence_file"]
+    ):
+        logging.warning(
+            "Sequence file '%s' does not exist.", configuration["sequence_file"]
+        )
+        return
     experiment = got10k.experiments.ExperimentVOT(
         sanitize_path(configuration["root_dir"]),
         version=configuration["version"],
         experiments="supervised",
         result_dir=sanitize_path(configuration["result_dir"]),
     )
+    experiment.repetitions = 5
     tracker = ADMDNet()
     experiment.run(
         tracker,
@@ -99,6 +109,42 @@ def run_otb_experiments(configuration: dict, display: bool) -> None:
     experiment.report([tracker.name])
 
 
+def run_uav_experiments(configuration: dict, display: bool) -> None:
+    """
+    Run UAV experiments.
+
+    :param dict configuration: The experimental configuration for OTB run via GOT-10k.
+    :param bool display: True indicates to display imagery as tracking occurs. False indicates to
+        not display imagery. This can be overridden by ``configuration["display"]``.
+    """
+    if "skip" in configuration and configuration["skip"]:
+        logging.info(
+            "Skipping UAV experiments because 'skip: true' is in the configuration."
+        )
+        return
+    if "root_dir" not in configuration:
+        logging.warning(
+            "'got10k_experiments.uav.root_dir' is required in the experimental configuration."
+        )
+        return
+    # if "version" not in configuration:
+    #     logging.warning(
+    #         "'got10k_experiments.otb.version' is required in the experimental configuration."
+    #     )
+    #     return
+    experiment = got10k.experiments.ExperimentUAV123(
+        sanitize_path(configuration["root_dir"]),
+        result_dir=sanitize_path(configuration["result_dir"]),
+    )
+    tracker = ADMDNet()
+    experiment.run(
+        tracker,
+        visualize=("display" in configuration and configuration["display"])
+        or ("display" not in configuration and display),
+    )
+    experiment.report([tracker.name])
+
+
 def main():
     """The main entry point for the application."""
     logging.basicConfig(format="[ %(levelname)s ] %(message)s", level=logging.INFO)
@@ -116,6 +162,8 @@ def main():
         run_otb_experiments(
             configuration["otb"], configuration["display"],
         )
+    if "uav" in configuration:
+        run_uav_experiments(configuration["uav"], configuration["display"])
 
 
 if __name__ == "__main__":

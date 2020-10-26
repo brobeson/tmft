@@ -33,6 +33,22 @@ from got10k.trackers import Tracker
 opts = yaml.safe_load(open("tracking/options.yaml", "r"))
 
 
+def _fix_positive_samples(samples: np.ndarray, n: int, box: np.ndarray) -> np.ndarray:
+    """
+    Ensure a set of positive samples is valid.
+
+    :param numpy.ndarray samples: The positive samples to fix if invalid.
+    :param int n: The number of samples to create if fixing is needed.
+    :param numpy.ndarray box: The target bounding box used if fixing is needed.
+    :return: The original samples if no fixing is required, or the fixed samples if fixing is
+        required.
+    :rtype: np.ndarray
+    """
+    if samples.shape[0] > 0:
+        return samples
+    return np.tile(box, [n, 1])
+
+
 class ADMDNet(Tracker):
     def __init__(self, name: str, configuration: dict):
         super().__init__(name=name)
@@ -78,9 +94,13 @@ class ADMDNet(Tracker):
         target_bbox = box
         self.box = target_bbox
 
-        pos_examples = SampleGenerator(
-            "gaussian", image.size, opts["trans_pos"], opts["scale_pos"]
-        )(target_bbox, opts["n_pos_init"], opts["overlap_pos_init"])
+        pos_examples = _fix_positive_samples(
+            SampleGenerator(
+                "gaussian", image.size, opts["trans_pos"], opts["scale_pos"]
+            )(target_bbox, opts["n_pos_init"], opts["overlap_pos_init"]),
+            opts["n_pos_init"],
+            target_bbox,
+        )
 
         neg_examples = np.concatenate(
             [
@@ -108,13 +128,17 @@ class ADMDNet(Tracker):
         torch.cuda.empty_cache()
 
         # Train bbox regressor
-        bbreg_examples = SampleGenerator(
-            "uniform",
-            image.size,
-            opts["trans_bbreg"],
-            opts["scale_bbreg"],
-            opts["aspect_bbreg"],
-        )(target_bbox, opts["n_bbreg"], opts["overlap_bbreg"])
+        bbreg_examples = _fix_positive_samples(
+            SampleGenerator(
+                "uniform",
+                image.size,
+                opts["trans_bbreg"],
+                opts["scale_bbreg"],
+                opts["aspect_bbreg"],
+            )(target_bbox, opts["n_bbreg"], opts["overlap_bbreg"]),
+            opts["n_bbreg"],
+            target_bbox,
+        )
         bbreg_feats = self.forward_samples(self.model, image, bbreg_examples)
         self.bbreg = BBRegressor(image.size)
         self.bbreg.train(bbreg_feats, bbreg_examples, target_bbox)
@@ -182,8 +206,12 @@ class ADMDNet(Tracker):
 
         # Data collect
         if success:
-            pos_examples = self.pos_generator(
-                target_bbox, opts["n_pos_update"], opts["overlap_pos_update"]
+            pos_examples = _fix_positive_samples(
+                self.pos_generator(
+                    target_bbox, opts["n_pos_update"], opts["overlap_pos_update"]
+                ),
+                opts["n_pos_update"],
+                target_bbox,
             )
             pos_feats = self.forward_samples(self.model, image, pos_examples)
             self.pos_feats_all.append(pos_feats)
