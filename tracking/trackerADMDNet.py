@@ -58,6 +58,9 @@ class ADMDNet(Tracker):
     # update_optimizer = set_optimizer(model, opts['lr_update'], opts['lr_mult'])
 
     def init(self, image, box):
+        return self.initialize(image, box)
+
+    def initialize(self, image, box):
         print("Initializing the tracker... ", end="", flush=True)
         with open("tracking/options.yaml", "r") as yaml_file:
             opts = yaml.safe_load(yaml_file)
@@ -167,6 +170,9 @@ class ADMDNet(Tracker):
         print("done", flush=True)
 
     def update(self, image):
+        self.find_target(image)
+
+    def find_target(self, image):
         self.numiter = self.numiter + 1
         print("\rTracking frame", self.numiter, end="", file=sys.stdout, flush=True)
         image = image.convert("RGB")

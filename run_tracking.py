@@ -100,7 +100,7 @@ def run_otb_experiments(configuration: dict, display: bool) -> None:
         version=configuration["version"],
         result_dir=sanitize_path(configuration["result_dir"]),
     )
-    tracker = ADMDNet()
+    tracker = ADMDNet("ADMDNet", configuration)
     experiment.run(
         tracker,
         visualize=("display" in configuration and configuration["display"])
