@@ -14,6 +14,23 @@ from tracking.run_tracker import forward_samples
 from tracking.run_tracker import train
 
 
+# TODO Do I need this function? I think it's to account for small targets in UAV123.
+def _fix_positive_samples(samples: np.ndarray, n: int, box: np.ndarray) -> np.ndarray:
+    """
+    Ensure a set of positive samples is valid.
+
+    :param numpy.ndarray samples: The positive samples to fix if invalid.
+    :param int n: The number of samples to create if fixing is needed.
+    :param numpy.ndarray box: The target bounding box used if fixing is needed.
+    :return: The original samples if no fixing is required, or the fixed samples if fixing is
+        required.
+    :rtype: np.ndarray
+    """
+    if samples.shape[0] > 0:
+        return samples
+    return np.tile(box, [n, 1])
+
+
 class BoundingBox:
     """Represents an axis aligned bounding box."""
 
@@ -119,11 +136,6 @@ class Tmft:
             **self.opts[self.opts["grl"]],
         )
 
-        # TODO This line is used in trackerADMDNet, but is commented out in tracking/run_tracker.py.
-        # In the paper, we explicitely said this branch was not trained at this time. Which way
-        # should it go?
-        # self.domain_network.train(True)
-
         self.classification_loss = BCELoss()
         self.domain_loss = torch.nn.BCELoss(reduction="sum")
         self.optimizer = modules.model.make_optimizer(
@@ -139,9 +151,6 @@ class Tmft:
             None,
             self.grl,
             self.classification_loss,
-            # TODO tracking/run_tracker.py passes in criterion_Adnet. tracking/trackerADMDNet.py
-            # passes in None. Which is correct?
-            # criterion_Adnet
             None,
             self.optimizer,
             pos_feats,
@@ -200,8 +209,6 @@ class Tmft:
         else:
             regressed_target_box = target_bbox
 
-        # TODO The original MDNet collects data from around the original target box, not the
-        # regressed box. Why not use the regressed box?
         if target_found:
             self.__collect_training_data(target_bbox, image)
 

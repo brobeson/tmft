@@ -1,12 +1,10 @@
 """Run VOT experiments."""
 
-import sys
 import numpy
 import PIL.Image
 import torch
 import yaml
 import modules.utils
-import tracking.trackerADMDNet
 import tracking.gen_config
 import tracking.tmft
 
@@ -52,10 +50,7 @@ def main() -> None:
     if "random_seed" in configuration:
         numpy.random.seed(configuration["random_seed"])
         torch.manual_seed(configuration["random_seed"])
-    if len(sys.argv) > 1 and sys.argv[1] == "admdnet":
-        run_tmft(tracking.trackerADMDNet.ADMDNet("ADMDNet", configuration), "Deer")
-    else:
-        run_tmft(tracking.tmft.Tmft(configuration), "Deer")
+    run_tmft(tracking.tmft.Tmft(configuration), "Deer")
 
 
 def _load_image(image_path: str):
