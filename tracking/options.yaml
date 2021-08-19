@@ -11,7 +11,7 @@ padding: 16
 batch_pos: 32
 batch_neg: 96
 batch_neg_cand: 1024
-batch_test: 256
+batch_test: 128
 
 # candidates sampling
 n_samples: 256
@@ -65,7 +65,7 @@ ft_layers: ['fc']
 loss_factor: 1
 loss_factor2: 1     # Unused scale factor for the domain adaptation los term.
 
-grl: exponential
+grl: pada
 grl_direction: increasing
 constant:
     constant: 1.0
@@ -92,6 +92,7 @@ pada:
     minimum_rate: 0.0
     maximum_rate: 1.0
     batches: 200
+    # direction: increasing
 arccosine:
     minimum_rate: 0.0
     maximum_rate: 1.0
@@ -105,11 +106,13 @@ got10k_experiments:
         version: 2019
         root_dir: ~/Videos/vot-got
         result_dir: ./results/vot2019
+        skip: true
     otb:
         version: 2015
         root_dir: ~/Videos/otb
         result_dir: ./results/otb
-        skip: true
+        skip: false
     uav:
         root_dir: ~/Videos/uav123
         result_dir: ./results/
+        skipt: true

@@ -1,6 +1,7 @@
+got10k
 opencv-python
+pyyaml
 scikit-image
 scikit-learn
 scipy
 torch
-pyyaml

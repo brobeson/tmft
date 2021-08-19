@@ -33,15 +33,10 @@
       "name": "Smoke Test",
       "type": "python",
       "request": "launch",
-      "module": "otb_experiments"
-    },
-    {
-      "name": "ADMDNet",
-      "type": "python",
-      "request": "launch",
-      "module": "otb_experiments",
+      "module": "run_tracker",
       "args": [
-        "admdnet"
+        "--smoke-test",
+        "Deer"
       ]
     }
   ]
