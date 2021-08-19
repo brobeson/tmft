@@ -9,11 +9,9 @@ import modules.model
 
 from modules.model import BCELoss
 from modules.sample_generator import SampleGenerator
-import networks.domain_adaptation_schedules
 from tracking.bbreg import BBRegressor
 from tracking.run_tracker import forward_samples
 from tracking.run_tracker import train
-import utilities.loss_data
 
 
 class BoundingBox:
@@ -63,10 +61,6 @@ def read_bounding_boxes(stream) -> List[BoundingBox]:
         )
         for l in data
     ]
-
-
-def to_numpy_array(box: BoundingBox) -> np.array:
-    return np.array([box.x, box.y, box.width, box.height])
 
 
 class Tmft:
@@ -135,12 +129,12 @@ class Tmft:
         self.optimizer = modules.model.make_optimizer(
             self.cnn, self.domain_network, self.opts["lr_init"], self.opts["lr_mult"]
         )
-        self.last_found_box = to_numpy_array(ground_truth)
+        self.last_found_box = ground_truth
 
         pos_feats, neg_feats = _generate_initial_features(
             self.opts, self.last_found_box, image, self.cnn
         )
-        classification_losses, domain_adaptation_losses = train(
+        train(
             self.cnn,
             None,
             self.grl,
@@ -155,9 +149,6 @@ class Tmft:
             self.opts["maxiter_init"],
         )
         self.training_records.append([])
-        self.__append_training_loss_data(
-            classification_losses, domain_adaptation_losses, ["initialization"]
-        )
         torch.cuda.empty_cache()
 
         self.box_regressor = _initialize_bounding_box_regressor(
@@ -298,7 +289,7 @@ class Tmft:
 
     def __short_term_update(self):
         number_of_frames = min(self.opts["n_frames_short"], len(self.positive_features))
-        classification_losses, domain_adaptation_losses = train(
+        train(
             self.cnn,
             None,
             self.grl,
@@ -309,12 +300,9 @@ class Tmft:
             torch.cat(self.negative_features, 0),
             self.opts["maxiter_update2"],
         )
-        self.__append_training_loss_data(
-            classification_losses, domain_adaptation_losses, ["short-term"]
-        )
 
     def __long_term_update(self):
-        classification_losses, domain_adaptation_losses = train(
+        train(
             self.cnn,
             self.domain_network,
             self.grl,
@@ -324,9 +312,6 @@ class Tmft:
             torch.cat(self.positive_features, 0),
             torch.cat(self.negative_features, 0),
             self.opts["maxiter_update"],
-        )
-        self.__append_training_loss_data(
-            classification_losses, domain_adaptation_losses, ["long-term"]
         )
 
     def __update_search_area(self, target_found: bool):
@@ -340,26 +325,6 @@ class Tmft:
             self.candidate_generator.set_trans(self.opts["trans"])
         else:
             self.candidate_generator.expand_trans(self.opts["trans_limit"])
-
-    def __append_training_loss_data(
-        self, classification_losses, domain_adaptation_losses, tags
-    ):
-        """
-        Append the training loss data if the data should be recorded.
-
-        :param list classification_losses: The classification branches' loss data.
-        :param list domain_adaptation_losses: The domain adaptation baanches' loss data.
-        :param list tags: A list of tags to apply to this loss data.
-        """
-        if "save_loss" in self.opts and self.opts["save_loss"]:
-            self.training_records[-1].append(
-                utilities.loss_data.TrainingRecord(
-                    self.frame_number,
-                    classification_losses,
-                    domain_adaptation_losses if domain_adaptation_losses else None,
-                    tags,
-                )
-            )
 
 
 class ConfigurationError(Exception):

@@ -43,12 +43,17 @@ To run the smoke test, run `python3 -m tracking.run_tracker --seq Deer`, or laun
 
 #### Original MDNet-based Algorithm
 
-| Sequence | LR Schedule | Mean IoU | Mean Frame Processing Time |
-|:---|:---|---:|---:|
+| Sequence | LR Schedule | Mean IoU |
+|:---|:---|---:|
 | Deer | Inc. Exponential (g=0.726, lr<sub>max</sub>=1.0) | 0.714 |
 | Deer | Inc. PADA (l=1, a=10, lr<sub>min</sub>=0, lr<sub>max</sub>=1) | 0.726 |
 | Deer | Constant (c=1.0) | 0.713 |
 
+#### Cleaned Up Code
+
+| Sequence | LR Schedule | Mean IoU |
+|:---|:---|---:|
+| Deer | Inc. PADA (l=1, a=10, lr<sub>min</sub>=0, lr<sub>max</sub>=1) | 0.726 |
 
 ---
 

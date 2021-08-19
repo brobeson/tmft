@@ -1,33 +1,39 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "VOT Experiments",
-            "type": "python",
-            "request": "launch",
-            "module": "vot_experiments"
-        },
-        {
-            "name": "UAV123",
-            "type": "python",
-            "request": "launch",
-            "module": "uav_experiments"
-        },
-        {
-            "name": "GOT-10k",
-            "type": "python",
-            "request": "launch",
-            "module": "experiments.run",
-        },
-        {
-            "name": "OTB",
-            "type": "python",
-            "request": "launch",
-            "module": "tracking.run_tracker",
-            "args": [
-                "--seq",
-                "Deer"
-            ]
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "VOT Experiments",
+      "type": "python",
+      "request": "launch",
+      "module": "vot_experiments"
+    },
+    {
+      "name": "UAV123",
+      "type": "python",
+      "request": "launch",
+      "module": "uav_experiments"
+    },
+    {
+      "name": "GOT-10k",
+      "type": "python",
+      "request": "launch",
+      "module": "experiments.run",
+    },
+    {
+      "name": "OTB",
+      "type": "python",
+      "request": "launch",
+      "module": "tracking.run_tracker",
+      "args": [
+        "--seq",
+        "Deer"
+      ]
+    },
+    {
+      "name": "Smoke Test",
+      "type": "python",
+      "request": "launch",
+      "module": "otb_experiments"
+    }
+  ]
 }
