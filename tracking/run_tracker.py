@@ -63,7 +63,6 @@ def train(
     maxiter,
     in_layer="fc4",
 ):
-    training_data = modules.training.Epoch()
     batch_pos = opts["batch_pos"]
     batch_neg = opts["batch_neg"]
     batch_test = opts["batch_test"]
@@ -91,9 +90,6 @@ def train(
 
     loss1total = []
     loss2total = []
-
-    domain_adaptation_losses = []
-    classification_losses = []
 
     for i in range(maxiter):
         optimizer.zero_grad()
@@ -163,20 +159,14 @@ def train(
             loss2 = criterion_Adnet(
                 results, torch.ones_like(results, device=results.device)
             )
-            training_data.losses.append(loss2.item())
-            domain_adaptation_losses.append(loss2.item())
             loss2 = loss2 * opts["loss_factor"]
             loss2total.append(loss2.data)
             # batch_pos_feats = batch_pos_feats * mask_asdn_src.cuda()
             batch_pos_feats = torch.cat((batch_pos_feats, batch_Tar_pos_feats), 0)
-            training_data.learning_rates.append(
-                networks.domain_adaptation_schedules.GradientReverseLayer.schedule.learning_rate()
-            )
         pos_score = model(batch_pos_feats, in_layer=in_layer)
         neg_score = model(batch_neg_feats, in_layer=in_layer)
         # optimize
         loss1 = criterion(pos_score, neg_score)
-        classification_losses.append(loss1.item())
         loss = loss1 + loss2  # + loss_g_2 * opts['loss_factor2']
         loss1total.append(loss1.data)
 
@@ -202,7 +192,6 @@ def train(
         # plt.figure()
         # plt.plot(loss1total)
         # plt.show()
-    return classification_losses, domain_adaptation_losses, training_data
 
 
 def run_mdnet(
@@ -360,8 +349,6 @@ def run_mdnet(
         if savefig:
             fig.savefig(os.path.join(savefig_dir, "0000.jpg"), dpi=dpi)
 
-    training_meta_data = []
-
     # Main loop
     for i in range(1, len(img_list)):
 
@@ -425,41 +412,35 @@ def run_mdnet(
             nframes = min(opts["n_frames_short"], len(pos_feats_all))
             pos_data = torch.cat(pos_feats_all[-nframes:], 0)
             neg_data = torch.cat(neg_feats_all, 0)
-            training_meta_data.append(
-                train(
-                    model,
-                    None,
-                    # Grd_reverse_layer,
-                    None,
-                    criterion,
-                    criterion_Adnet,
-                    update_optimizer,
-                    pos_data,
-                    neg_data,
-                    opts["maxiter_update2"],
-                )[2]
+            train(
+                model,
+                None,
+                # Grd_reverse_layer,
+                None,
+                criterion,
+                criterion_Adnet,
+                update_optimizer,
+                pos_data,
+                neg_data,
+                opts["maxiter_update2"],
             )
-            training_meta_data[-1].frame = i
 
         # Long term update
         elif i % opts["long_interval"] == 0:
             pos_data = torch.cat(pos_feats_all, 0)
             neg_data = torch.cat(neg_feats_all, 0)
-            training_meta_data.append(
-                train(
-                    model,
-                    model_Adnet,
-                    # Grd_reverse_layer,
-                    None,
-                    criterion,
-                    criterion_Adnet,
-                    update_optimizer,
-                    pos_data,
-                    neg_data,
-                    opts["maxiter_update"],
-                )[2]
+            train(
+                model,
+                model_Adnet,
+                # Grd_reverse_layer,
+                None,
+                criterion,
+                criterion_Adnet,
+                update_optimizer,
+                pos_data,
+                neg_data,
+                opts["maxiter_update"],
             )
-            training_meta_data[-1].frame = i
 
         torch.cuda.empty_cache()
         spf = time.time() - tic
@@ -503,9 +484,6 @@ def run_mdnet(
         print("meanIOU: {:.3f}".format(overlap.mean()))
     fps = len(img_list) / spf_total
     plt.close()
-    modules.training.write_training_data(
-        os.path.join("training_data", sequence_name), training_meta_data
-    )
     return result, result_bb, fps
 
 
