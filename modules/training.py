@@ -2,8 +2,10 @@
 
 import json
 
+
 class Epoch:
     """Encapsulate training meta-data for a singe training epoch."""
+
     def __init__(self):
         self.learning_rates = []
         self.frame = None

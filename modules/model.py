@@ -290,4 +290,3 @@ def make_networks(
         domain_network = domain_network.cuda()
     cnn.set_learnable_params(cnn_learnable_parameters)
     return cnn, domain_network
-
