@@ -1,0 +1,15 @@
+models/*.mat
+smoke_test_results/deer_loss.txt
+test_loss_data/
+reports
+results*
+*.pyc
+*.swp
+pretrain/data/
+datasets/OTB*
+datasets/VOT
+datasets/ILSVRC
+*.pth
+.ropeproject
+docs/
+training_data/

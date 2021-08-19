@@ -1,0 +1,6 @@
+multirun:
+  path: ~/repositories/learning_rate_research/configuration_files/
+  configurations:
+    - cosine_annealing
+    - inverse_cosine_annealing
+    - pada_10.0
