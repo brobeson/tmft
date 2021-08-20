@@ -11,10 +11,16 @@ User Guide
 
 .. toctree::
    :maxdepth: 1
-   :caption: Modules:
 
    user_guide
 
+Code Reference
+--------------
+
+.. toctree::
+   :maxdepth: 2
+
+   experiments
 
 Indices and Tables
 ------------------

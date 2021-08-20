@@ -2,7 +2,7 @@
 TMFT Experiment Runner
 
 This is the main entry module for running experiments on TMFT. This document is the reference for
-the module. For basic instructions for how to run experiments, see :doc:`../running_experiments`.
+the module. For basic instructions for how to run experiments, see :doc:`user_guide`.
 """
 
 import argparse

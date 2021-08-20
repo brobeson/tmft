@@ -32,8 +32,9 @@ from tracking.gen_config import gen_config
 import modules.training
 
 
-with open("tracking/options.yaml") as yaml_file:
-    opts = yaml.safe_load(yaml_file)
+if __name__ == "__main__":
+    with open("tracking/options.yaml") as yaml_file:
+        opts = yaml.safe_load(yaml_file)
 
 
 def forward_samples(model, image, samples, out_layer="conv3"):

@@ -1,5 +1,5 @@
-Setting Up
-==========
+Running TMFT
+============
 
 I assume you have Python and Pip installed on your system.
 TMFT requires Python 3.
