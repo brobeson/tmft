@@ -22,52 +22,9 @@ If you're using this code for your research, please cite:
 }
 ```
 
-## Running TMFT
+## Getting Started
 
-I assume you have Python and Pip installed on your system.
-TMFT requires Python 3.
-
-1. Clone this repository, or fork it in Github and clone your fork.
-1. Install dependencies.
-   ```bash
-   pip install --requirement requirements.txt
-   ```
-1. Download the [MDNet ImageNet-Vid model](https://github.com/hyeonseobnam/py-MDNet/raw/master/models/mdnet_imagenet_vid.pth).
-   Save it to *models/* in your repository.
-
-### Running a Smoke Test
-
-The smoke test provides a quick indication if changes to the code cause errors or degrade performance.
-To run the smoke test, run `python3 -m experiments.run --smoke-test Deer`, or launch the Smoke Test debug configuration in VS Code.
-
-> **NOTE**
-> The smoke test seeds the random number generators with 0.
-> This makes the smoke test deterministic so we know that performance changes are due to code changes.
-
-#### Original MDNet-based Algorithm
-
-| Sequence | LR Schedule | Mean IoU |
-|:---|:---|---:|
-| Deer | Inc. Exponential (g=0.726, lr<sub>max</sub>=1.0) | 0.714 |
-| Deer | Inc. PADA (l=1, a=10, lr<sub>min</sub>=0, lr<sub>max</sub>=1) | 0.726 |
-| Deer | Constant (c=1.0) | 0.713 |
-
-#### Cleaned Up TMFT
-
-| Sequence | LR Schedule | Mean IoU |
-|:---|:---|---:|
-| Deer | Inc. PADA (l=1, a=10, lr<sub>min</sub>=0, lr<sub>max</sub>=1) | 0.726 |
-
----
-
-## Usage
-
-### Tracking
-
-```bash
-python tracking/run_tracker.py -s DragonBaby [-d (display fig)] [-f (save fig)]
-```
-
-- You can provide a sequence configuration in two ways (see tracking/gen_config.py):
-  - `python tracking/run_tracker.py -s [seq name]`
-  - `python tracking/run_tracker.py -j [json path]`
+1. Clone the repository.
+1. Install [Sphinx](https://www.sphinx-doc.org).
+1. In the [docs/](docs/) directory, run `make html`.
+1. Open *docs/build/html/index.html* in your web browser.
