@@ -11,5 +11,5 @@ datasets/VOT
 datasets/ILSVRC
 *.pth
 .ropeproject
-docs/
+docs/build
 training_data/

@@ -1,0 +1,80 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Documentation",
+      "type": "process",
+      "command": "make",
+      "args": [
+        "clean",
+        "html"
+      ],
+      "options": {
+        "cwd": "docs"
+      },
+      "group": "build",
+      "problemMatcher": {
+        "owner": "rst",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.+):(.+):(\\d+):\\s+(.+):\\s+(.+)$",
+          "file": 1,
+          "line": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "PyLint",
+      "command": "pylint",
+      "args": [
+        "experiments",
+        "unit_tests"
+      ],
+      "group": "test",
+      "problemMatcher": {
+        "owner": "python",
+        "fileLocation": "relative",
+        "pattern": {
+          "regexp": "^(.+):(\\d+):(\\d+):\\s+(.+):\\s+(.+)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "code": 4,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "Unit Tests",
+      "command": "python3",
+      "args": [
+        "-m",
+        "unittest",
+        "discover"
+      ],
+      "group": "test"
+    },
+    {
+      "label": "Unit Test Coverage",
+      "command": "coverage run --branch --module unittest discover && coverage report",
+      "type": "shell",
+      "problemMatcher": []
+    },
+    {
+      "label": "Full Build",
+      "dependsOn": [
+        "Build Documentation",
+        "PyLint",
+        "Unit Test Coverage"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}
