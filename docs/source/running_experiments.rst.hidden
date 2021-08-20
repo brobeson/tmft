@@ -1,0 +1,79 @@
+Running Experiments
+===================
+
+Run experiments by executing ``python3 run_experiments.py``. The run_experiments
+module reads a configuration file to know which experiments to run and how to
+run them. The default configuration file is *./configuration.yaml*.
+
+The command supports the ``--help`` option. The full options are::
+
+    $ python3 -m experiments.run --help
+    usage: run.py [-h] [--sequence SEQUENCE] [configuration_file]
+
+    Run all tracking experiments specified in a configuration file.
+
+    positional arguments:
+    configuration_file   The path to the experiment configuration file.
+                         (default: configuration.yaml)
+
+    optional arguments:
+    -h, --help           show this help message and exit
+    --sequence SEQUENCE  Run TMFT on a single sequence. Using this option skips
+                         all experiments defined in the configuration file. This
+                         option must specify the root path to a sequence from a
+                         known dataset. The experiment runner will attempt to
+                         figure out the dataset, but it will not attempt to run
+                         actual benchmarks. (default: None)
+
+Running a Single Sequence
+-------------------------
+
+The experiment runner can run basic tracking on a single sequence. This is
+primarily used as a smoke test when modifying the TMFT source code or the
+experiment configuration.
+
+To track a single sequence, specify the root path to the sequence on the
+command line as in::
+
+    python3 -m experiments.run --sequence ~/Videos/otb/Biker
+
+Note that the experiment configuration is still required, since it specifies
+options for the tracker. When run this way, the experiment runner will skip all
+experiments specified in the configuration; there is no need to explicitly
+specify ``skip: true`` in the configuration.
+
+Configuring Experiments
+-----------------------
+
+Configure your experiments using a YAML file. The configuration file must
+contain a "tmft" section, and at least one of the following sections:
+"single_sequence".
+
+``tmft`` Section
+................
+
+The ``tmft`` section contains a bunch of key/value pairs. All options listed here
+are required.
+
+Example Configuration File
+..........................
+
+.. code-block:: yaml
+
+    tmft:
+        use_gpu: true
+        model_path: models/mdnet_imagenet_vid.path
+
+        # Remaining TMFT options are omitted for brevity.
+
+    got10k_experiments:
+        display: false
+        vot:
+            datasets: 2016
+            root_dir: ~/Videos/vot
+            display: true
+        otb:
+            version: 2015
+            root_dir: ~/Videos/otb
+            result_dir: ./results/otb
+            skip: true

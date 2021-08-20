@@ -32,7 +32,7 @@ from tracking.gen_config import gen_config
 import modules.training
 
 
-if __name__ == "__main__":
+if os.path.exists("tracking/options.yaml"):
     with open("tracking/options.yaml") as yaml_file:
         opts = yaml.safe_load(yaml_file)
 

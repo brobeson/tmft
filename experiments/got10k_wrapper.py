@@ -25,9 +25,7 @@ class Got10kTmft(got10k.trackers.Tracker):
         self.tracker = tracking.tmft.Tmft(configuration)
 
     def init(self, image, box):
-        self.tracker.initialize(
-            image, tracking.tmft.BoundingBox(box[0], box[1], box[2], box[3])
-        )
+        self.tracker.initialize(image, box)
 
     def update(self, image):
         return self.tracker.find_target(image)

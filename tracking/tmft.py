@@ -31,55 +31,6 @@ def _fix_positive_samples(samples: np.ndarray, n: int, box: np.ndarray) -> np.nd
     return np.tile(box, [n, 1])
 
 
-class BoundingBox:
-    """Represents an axis aligned bounding box."""
-
-    def __init__(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0):
-        self.__x = x
-        self.__y = y
-        self.__width = width
-        self.__height = height
-
-    @property
-    def x(self):
-        """The X coordinate of the upper left corner of the box, specified in pixels."""
-        return self.__x
-
-    @property
-    def y(self):
-        """The Y coordinate of the upper left corner of the box, specified in pixels."""
-        return self.__y
-
-    @property
-    def width(self):
-        """The width of the box, measured in pixels."""
-        return self.__width
-
-    @property
-    def height(self):
-        """The height of the box, measured in pixels."""
-        return self.__height
-
-    # TODO Add __str__()
-
-
-def read_bounding_boxes(stream) -> List[BoundingBox]:
-    """
-    Read a list of bounding boxes from a file.
-
-    :param stream: Any input stream that implements ``readlines()``.
-    :return: The list of bounding boxes read from the ``stream``.
-    :rtype: List[BoundingBox]
-    """
-    data = [l.strip().split(",") for l in stream.readlines()]
-    return [
-        BoundingBox(
-            int(float(l[0])), int(float(l[1])), int(float(l[2])), int(float(l[3]))
-        )
-        for l in data
-    ]
-
-
 class Tmft:
     """
     The TMFT tracker.
@@ -111,14 +62,14 @@ class Tmft:
         self.negative_features = None
         self.training_records = []
 
-    def initialize(self, image: PIL.Image.Image, ground_truth: BoundingBox) -> None:
+    def initialize(self, image: PIL.Image.Image, ground_truth: np.ndarray) -> None:
         """
         Initialize the TMFT tracker.
 
         :param PIL.Image.Image image: The image to use to initialize the tracker. Typically, this is
             the first frame of a sequence, but some benchmarks may re-initialize the tracker if it
             loses the target. VOT is a benchmark that does this.
-        :param BoundingBox ground_truth: The ground truth, axis-aligned bounding box for the target
+        :param np.ndarray ground_truth: The ground truth, axis-aligned bounding box for the target
             in the provided ``image``.
 
         This method will load the CNN from disk, then run the initial training with the provided
@@ -185,14 +136,14 @@ class Tmft:
             self.cnn, self.domain_network, self.opts["lr_update"], self.opts["lr_mult"]
         )
 
-    def find_target(self, image: PIL.Image.Image) -> BoundingBox:
+    def find_target(self, image: PIL.Image.Image) -> np.ndarray:
         """
         Attempt to locate the target object in an image.
 
         :param PIL.Image.Image image: The image in which to locate the target object.
         :return: The bounding box around the target object within the provided ``image``. If the
             target is not found, ``None`` is returned.
-        :rtype: BoundingBox or NoneType
+        :rtype: np.ndarray or NoneType
 
         This method will try to find the target object in the given ``image``. It also updates the
         CNN at the appropriate times.
