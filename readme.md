@@ -38,8 +38,11 @@ TMFT requires Python 3.
 ### Running a Smoke Test
 
 The smoke test provides a quick indication if changes to the code cause errors or degrade performance.
-Before running the smoke test, ensure the `random_seed` is set to 0 in [tracking/options.yaml](tracking/options.yaml).
-To run the smoke test, run `python3 -m tracking.run_tracker --seq Deer`, or launch the Smoke Test debug configuration in VS Code.
+To run the smoke test, run `python3 -m experiments.run --smoke-test Deer`, or launch the Smoke Test debug configuration in VS Code.
+
+> **NOTE**
+> The smoke test seeds the random number generators with 0.
+> This makes the smoke test deterministic so we know that performance changes are due to code changes.
 
 #### Original MDNet-based Algorithm
 
@@ -54,12 +57,6 @@ To run the smoke test, run `python3 -m tracking.run_tracker --seq Deer`, or laun
 | Sequence | LR Schedule | Mean IoU |
 |:---|:---|---:|
 | Deer | Inc. PADA (l=1, a=10, lr<sub>min</sub>=0, lr<sub>max</sub>=1) | 0.726 |
-
-#### ADMDNet
-
-| Sequence | LR Schedule | Mean IoU |
-|:---|:---|---:|
-| Deer | Inc. PADA (l=1, a=10, lr<sub>min</sub>=0, lr<sub>max</sub>=1) | 0.706 |
 
 ---
 

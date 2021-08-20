@@ -33,7 +33,7 @@
       "name": "Smoke Test",
       "type": "python",
       "request": "launch",
-      "module": "run_tracker",
+      "module": "experiments.run",
       "args": [
         "--smoke-test",
         "Deer"

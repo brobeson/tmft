@@ -92,7 +92,7 @@ pada:
     minimum_rate: 0.0
     maximum_rate: 1.0
     batches: 200
-    # direction: increasing
+    direction: increasing
 arccosine:
     minimum_rate: 0.0
     maximum_rate: 1.0

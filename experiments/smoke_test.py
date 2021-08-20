@@ -21,8 +21,8 @@ def run(sequence_name: str) -> None:
         configuration = yaml.safe_load(yaml_file)
     # For the smoke test, ensure the random generators are seeded. This makes the smoke test
     # deterministic; if the test fails, we KNOW it's from our code changes instead of randomness.
-    numpy.random.seed(configuration["random_seed"])
-    torch.manual_seed(configuration["random_seed"])
+    numpy.random.seed(0)
+    torch.manual_seed(0)
     _run_tmft(tracking.tmft.Tmft(configuration), sequence_name)
 
 
