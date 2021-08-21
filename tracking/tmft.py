@@ -1,13 +1,14 @@
-"""Provides the Tmft tracker class, and supporting classes and functions."""
+"""
+Provides the Tmft tracker class, and supporting classes and functions.
+
+Copyright brobeson
+"""
 
 import copy
-from typing import List, Tuple
-import numpy as np
+import numpy
 import PIL.Image
 import torch
 import modules.model
-
-from modules.model import BCELoss
 from modules.sample_generator import SampleGenerator
 from tracking.bbreg import BBRegressor
 from tracking.run_tracker import forward_samples
@@ -15,7 +16,9 @@ from tracking.run_tracker import train
 
 
 # TODO Do I need this function? I think it's to account for small targets in UAV123.
-def _fix_positive_samples(samples: np.ndarray, n: int, box: np.ndarray) -> np.ndarray:
+def _fix_positive_samples(
+    samples: numpy.ndarray, n: int, box: numpy.ndarray
+) -> numpy.ndarray:
     """
     Ensure a set of positive samples is valid.
 
@@ -24,11 +27,11 @@ def _fix_positive_samples(samples: np.ndarray, n: int, box: np.ndarray) -> np.nd
     :param numpy.ndarray box: The target bounding box used if fixing is needed.
     :return: The original samples if no fixing is required, or the fixed samples if fixing is
         required.
-    :rtype: np.ndarray
+    :rtype: numpy.ndarray
     """
     if samples.shape[0] > 0:
         return samples
-    return np.tile(box, [n, 1])
+    return numpy.tile(box, [n, 1])
 
 
 class Tmft:
@@ -62,21 +65,21 @@ class Tmft:
         self.negative_features = None
         self.training_records = []
 
-    def initialize(self, image: PIL.Image.Image, ground_truth: np.ndarray) -> None:
+    def initialize(self, image: PIL.Image.Image, ground_truth: numpy.ndarray) -> None:
         """
         Initialize the TMFT tracker.
 
         :param PIL.Image.Image image: The image to use to initialize the tracker. Typically, this is
             the first frame of a sequence, but some benchmarks may re-initialize the tracker if it
             loses the target. VOT is a benchmark that does this.
-        :param np.ndarray ground_truth: The ground truth, axis-aligned bounding box for the target
+        :param numpy.ndarray ground_truth: The ground truth, axis-aligned bounding box for the target
             in the provided ``image``.
 
         This method will load the CNN from disk, then run the initial training with the provided
         ``image`` and ``ground_truth`` bounding box.
         """
         if "random_seed" in self.opts:
-            np.random.seed(self.opts["random_seed"])
+            numpy.random.seed(self.opts["random_seed"])
             torch.manual_seed(self.opts["random_seed"])
 
         self.cnn, self.domain_network = modules.model.make_networks(
@@ -87,7 +90,7 @@ class Tmft:
             **self.opts[self.opts["grl"]],
         )
 
-        self.classification_loss = BCELoss()
+        self.classification_loss = modules.model.BCELoss()
         self.domain_loss = torch.nn.BCELoss(reduction="sum")
         self.optimizer = modules.model.make_optimizer(
             self.cnn, self.domain_network, self.opts["lr_init"], self.opts["lr_mult"]
@@ -136,14 +139,14 @@ class Tmft:
             self.cnn, self.domain_network, self.opts["lr_update"], self.opts["lr_mult"]
         )
 
-    def find_target(self, image: PIL.Image.Image) -> np.ndarray:
+    def find_target(self, image: PIL.Image.Image) -> numpy.ndarray:
         """
         Attempt to locate the target object in an image.
 
         :param PIL.Image.Image image: The image in which to locate the target object.
         :return: The bounding box around the target object within the provided ``image``. If the
             target is not found, ``None`` is returned.
-        :rtype: np.ndarray or NoneType
+        :rtype: numpy.ndarray or NoneType
 
         This method will try to find the target object in the given ``image``. It also updates the
         CNN at the appropriate times.
@@ -172,14 +175,16 @@ class Tmft:
         self.last_found_box = target_bbox
         return regressed_target_box
 
-    def __find_target(self, image: PIL.Image.Image) -> Tuple[bool, np.array, np.array]:
+    def __find_target(self, image: PIL.Image.Image) -> tuple:
         """
         Find the target in the image.
 
-        :param PIL.Image.Image image: The image in which to find the target.
-        :returns: ``True`` if the target is found, ``False`` if it is not.
-        :returns: The bounding box around the target.
-        :returns: The samples the consitute the best five target candidates.
+        Args:
+            image (PIL.Image.Image): The image to search for the target object.
+
+        Returns:
+            (bool, numpy.array, numpy.array): ``True`` if the target is found, the bounding box around the
+            target, and the samples for the best five target candidates.
         """
         samples = self.candidate_generator(self.last_found_box, self.opts["n_samples"])
         sample_scores = forward_samples(self.cnn, image, samples, out_layer="fc6")
@@ -192,15 +197,15 @@ class Tmft:
         return target_score > 0, target_bbox, samples[top_indices]
 
     def __regress_target_box(
-        self, best_samples: np.array, image: PIL.Image.Image
-    ) -> np.array:
+        self, best_samples: numpy.array, image: PIL.Image.Image
+    ) -> numpy.array:
         """
         Submit the target bounding box to regression.
 
-        :param np.array best_samples: The list of candidates that are most likely the target.
+        :param numpy.array best_samples: The list of candidates that are most likely the target.
         :param PIL.Image.Image image: The image in which to regress the target bounding box.
         :return: The regressed bounding box.
-        :rtype: np.array
+        :rtype: numpy.array
         """
         if len(best_samples) == 1:
             best_samples = best_samples[None, :]
@@ -210,12 +215,12 @@ class Tmft:
         return best_samples.mean(axis=0)
 
     def __collect_training_data(
-        self, target_box: np.array, image: PIL.Image.Image
+        self, target_box: numpy.array, image: PIL.Image.Image
     ) -> None:
         """
         Collect positive and negative data for online training later.
 
-        :param np.array target_box: The box around which to collect training data.
+        :param numpy.array target_box: The box around which to collect training data.
         :param PIL.Image.Image image: The image from which to collect training data.
         """
         self.positive_features.append(
@@ -376,19 +381,19 @@ def _validate_tmft_configuration(configuration: dict) -> None:
 
 def _generate_initial_features(
     configuration: dict,
-    bounding_box: np.array,
+    bounding_box: numpy.array,
     image: PIL.Image.Image,
     cnn: modules.model.MDNet,
-) -> Tuple[np.array, np.array]:
+) -> tuple:
     """
     Create the initial set of features.
 
     :param dict configuration: The TMFT configuration.
-    :param np.array bounding_box: The bounding box around which to sample and generate features.
+    :param numpy.array bounding_box: The bounding box around which to sample and generate features.
     :param PIL.Image.Image image: The image from which to sample and generate features.
     :param modules.model.MDNet: The MDNet CNN from which to generate features.
     :return: The positive and negative features.
-    :rtype: Tuple[np.array, np.array]
+    :rtype: (numpy.array, numpy.array)
     """
     positive_samples = modules.sample_generator.generate_samples(
         SampleGenerator(
@@ -401,7 +406,7 @@ def _generate_initial_features(
         configuration["n_pos_init"],
         configuration["overlap_pos_init"],
     )
-    neg_examples = np.concatenate(
+    neg_examples = numpy.concatenate(
         [
             modules.sample_generator.generate_samples(
                 SampleGenerator(
@@ -422,7 +427,7 @@ def _generate_initial_features(
             ),
         ]
     )
-    neg_examples = np.random.permutation(neg_examples)
+    neg_examples = numpy.random.permutation(neg_examples)
     return (
         forward_samples(cnn, image, positive_samples),
         forward_samples(cnn, image, neg_examples),
@@ -431,7 +436,7 @@ def _generate_initial_features(
 
 def _initialize_bounding_box_regressor(
     configuration: dict,
-    bounding_box: np.array,
+    bounding_box: numpy.array,
     image: PIL.Image.Image,
     cnn: modules.model.MDNet,
 ) -> BBRegressor:
@@ -439,7 +444,7 @@ def _initialize_bounding_box_regressor(
     Create and train the bounding box regressor.
 
     :param dict configuration: The TMFT configuration.
-    :param np.array bounding_box: The bounding box from which to train the regressor.
+    :param numpy.array bounding_box: The bounding box from which to train the regressor.
     :param PIL.Image.Image image: The image from which to sample and generate features.
     :param modules.model.MDNet: The MDNet CNN from which to generate features.
     :return: The trained bounding box regressor.
