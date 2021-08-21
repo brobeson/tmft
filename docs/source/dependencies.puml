@@ -1,0 +1,90 @@
+@startuml
+
+skinparam Linetype ortho
+
+package experiments {
+  [got10k_wrapper]
+  [run]
+  [smoke_test]
+  [uav_experiments]
+  [vot_experiments]
+}
+
+package modules {
+  [model] <<MDNet>>
+  [sample_generator] as modules_sample_generator <<MDNet>>
+  [training]
+  [utils] <<MDNet>>
+}
+
+package networks {
+  [domain_adaptation_schedules]
+}
+
+package pretrain {
+  [data_prov] as pretrain_data_prov <<MDNet>>
+  [prepro_imagenet] <<MDNet>>
+  [prepro_otb]
+  [prepro_vot] <<MDNet>>
+  [train_mdnet] <<MDNet>>
+}
+
+package tracking {
+  [bbreg] <<MDNet>>
+  [data_prov] as tracking_data_prov <<MDNet>>
+  [gen_config] <<MDNet>>
+  [run_tracker] <<MDNet>>
+  [tmft]
+}
+
+package unit_test {
+  [test_got10k_wrapper]
+  [test_domain_adaptation_schedules]
+  [test_grl]
+  [test_loss_data]
+}
+
+package utilities {
+  [bounding_boxes]
+  [loss_data]
+  [sample_generator] as utilities_sample_generator
+}
+
+[got10k_wrapper] --> [tmft]
+[got10k_wrapper] --> [loss_data]
+[run] --> [smoke_test]
+[smoke_test] --> [gen_config]
+[smoke_test] --> [tmft]
+[uav_experiments] --> [trackerADMDNet]
+[uav_experiments] --> [tmft]
+[vot_experiments] --> [trackerADMDNet]
+
+[model] --> [domain_adaptation_schedules]
+modules_sample_generator --> [utils]
+
+pretrain_data_prov --> modules_sample_generator
+pretrain_data_prov --> [utils]
+[train_mdnet] --> pretrain_data_prov
+[train_mdnet] --> [model]
+
+[bbreg] --> [utils]
+tracking_data_prov --> [utils]
+[run_tracker] --> [model]
+[run_tracker] --> modules_sample_generator
+[run_tracker] --> [utils]
+[run_tracker] --> [domain_adaptation_schedules]
+[run_tracker] --> tracking_data_prov
+[run_tracker] --> [bbreg]
+[run_tracker] --> [gen_config]
+[tmft] --> [model]
+[tmft] --> modules_sample_generator
+[tmft] --> [bbreg]
+[tmft] --> [run_tracker]
+
+[test_got10k_wrapper] --> [got10k_wrapper]
+[test_domain_adaptation_schedules] --> [domain_adaptation_schedules]
+[test_loss_data] --> [loss_data]
+[test_grl] --> [domain_adaptation_schedules]
+
+utilities_sample_generator --> [bounding_boxes]
+@enduml

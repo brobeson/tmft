@@ -1,3 +1,4 @@
+# These are necessary to run the tracker.
 got10k
 opencv-python
 pyyaml
@@ -5,3 +6,7 @@ scikit-image
 scikit-learn
 scipy
 torch
+
+# These are necessary to build the documentation.
+Sphinx
+sphinxcontrib-plantuml

@@ -48,3 +48,9 @@ Sequence  LR Schedule                                                    Mean Io
 ========  =============================================================  ========
 Deer      Inc. PADA (l=1, a=10, lr\ :sub:`min`\ =0, lr\ :sub:`max`\ =1)  0.726 
 ========  =============================================================  ========
+
+Code Cleanup
+============
+
+.. uml:: dependencies.puml
+   :caption: Figure 1: Module Dependencies

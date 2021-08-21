@@ -21,6 +21,7 @@ Code Reference
    :maxdepth: 2
 
    experiments
+   tracking.tmft
 
 Indices and Tables
 ------------------
