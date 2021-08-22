@@ -1,5 +1,6 @@
 """Run a smoke test using a single sequence from OTB-100."""
 
+import time
 import numpy
 import PIL.Image
 import torch
@@ -40,13 +41,17 @@ def _run_tmft(tmft: tracking.tmft, sequence: str) -> None:
     print("Training on frame 0")
     tmft.initialize(_load_image(images[0]), groundtruth[0])
     ious = numpy.zeros(len(images))
+    frame_processing_times = numpy.zeros(len(images) - 1)
     ious[0] = 1.0
     for i, (image_file, gt) in enumerate(zip(images[1:], groundtruth[1:])):
-        print("Frame", i + 1, end="")
+        print("Frame", str(i + 1).rjust(3, " "), end="")
+        start_time = time.time()
         target = tmft.find_target(_load_image(image_file))
+        frame_processing_times[i] = time.time() - start_time
         ious[i + 1] = modules.utils.overlap_ratio(target, gt)
-        print(f" IoU = {ious[i + 1]:.3f}")
+        print(f" IoU = {ious[i + 1]:.3f}  t = {frame_processing_times[i]:.3f}")
     print(f"Mean IoU = {ious.mean():.3f}")
+    print(f"Mean t   = {frame_processing_times.mean():.3f}")
 
 
 def _load_image(image_path: str):
