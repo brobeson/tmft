@@ -13,6 +13,7 @@ import numpy as np
 from collections import OrderedDict
 
 import torch
+import torch.cuda
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -285,7 +286,7 @@ def make_networks(
     """
     cnn = MDNet(model_path)
     domain_network = DomainAdaptationNetwork(schedule, **schedule_parameters)
-    if use_gpu:
+    if torch.cuda.is_available():
         cnn = cnn.cuda()
         domain_network = domain_network.cuda()
     cnn.set_learnable_params(cnn_learnable_parameters)

@@ -13,6 +13,7 @@ User Guide
    :maxdepth: 1
 
    user_guide
+   tmft_configuration
 
 Code Reference
 --------------
