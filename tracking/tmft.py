@@ -45,7 +45,6 @@ class Tmft:
     """
 
     def __init__(self, configuration: dict):
-        _validate_tmft_configuration(configuration)
         self.opts = copy.deepcopy(configuration)
         # TODO Which of these are really necessary as class members?
         self.cnn = None
@@ -72,8 +71,8 @@ class Tmft:
         :param PIL.Image.Image image: The image to use to initialize the tracker. Typically, this is
             the first frame of a sequence, but some benchmarks may re-initialize the tracker if it
             loses the target. VOT is a benchmark that does this.
-        :param numpy.ndarray ground_truth: The ground truth, axis-aligned bounding box for the target
-            in the provided ``image``.
+        :param numpy.ndarray ground_truth: The ground truth, axis-aligned bounding box for the
+            target in the provided ``image``.
 
         This method will load the CNN from disk, then run the initial training with the provided
         ``image`` and ``ground_truth`` bounding box.
@@ -183,8 +182,8 @@ class Tmft:
             image (PIL.Image.Image): The image to search for the target object.
 
         Returns:
-            (bool, numpy.array, numpy.array): ``True`` if the target is found, the bounding box around the
-            target, and the samples for the best five target candidates.
+            (bool, numpy.array, numpy.array): ``True`` if the target is found, the bounding box
+            around the target, and the samples for the best five target candidates.
         """
         samples = self.candidate_generator(self.last_found_box, self.opts["n_samples"])
         sample_scores = forward_samples(self.cnn, image, samples, out_layer="fc6")
@@ -316,69 +315,6 @@ def open_image(path: str) -> PIL.Image.Image:
 # -------------------------------------
 # Implementation Details
 # -------------------------------------
-_REQUIRED_OPTIONS = [
-    "use_gpu",
-    "model_path",
-    "img_size",
-    "padding",
-    "batch_pos",
-    "batch_neg",
-    "batch_neg_cand",
-    "batch_test",
-    "n_samples",
-    "trans",
-    "scale",
-    "trans_limit",
-    "trans_pos",
-    "scale_pos",
-    "trans_neg_init",
-    "scale_neg_init",
-    "trans_neg",
-    "scale_neg",
-    "n_bbreg",
-    "overlap_bbreg",
-    "trans_bbreg",
-    "scale_bbreg",
-    "aspect_bbreg",
-    "lr_init",
-    "maxiter_init",
-    "n_pos_init",
-    "n_neg_init",
-    "overlap_pos_init",
-    "overlap_neg_init",
-    "lr_update",
-    "maxiter_update",
-    "maxiter_update2",
-    "n_pos_update",
-    "n_neg_update",
-    "overlap_pos_update",
-    "overlap_neg_update",
-    "long_interval",
-    "n_frames_long",
-    "n_frames_short",
-    "grad_clip",
-    "grad_clip2",
-    "lr_mult",
-    "ft_layers",
-    "loss_factor",
-    "loss_factor2",
-]
-
-
-def _validate_tmft_configuration(configuration: dict) -> None:
-    """
-    Ensure that a TMFT configuration is valid.
-
-    :param dict configuration: The configuration to validate.
-    :raises TypeError: if ``configuration`` is not a ``dict``.
-    """
-    if not isinstance(configuration, dict):
-        raise TypeError("The TMFT configuration must be a dict object.")
-    for option in _REQUIRED_OPTIONS:
-        if option not in configuration:
-            raise ConfigurationError(option)
-
-
 def _generate_initial_features(
     configuration: dict,
     bounding_box: numpy.array,
