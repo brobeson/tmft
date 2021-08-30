@@ -33,11 +33,7 @@
       "name": "Smoke Test",
       "type": "python",
       "request": "launch",
-      "module": "experiments.run",
-      "args": [
-        "--smoke-test",
-        "Deer"
-      ]
+      "module": "experiments.smoke_test"
     }
   ]
 }

@@ -1,5 +1,6 @@
 """Run a smoke test using a single sequence from OTB-100."""
 
+import argparse
 import time
 import numpy
 import PIL.Image
@@ -8,6 +9,11 @@ import yaml
 import modules.utils
 import tracking.gen_config
 import tracking.tmft
+
+
+def main() -> None:
+    """The main entry point of the smoke test application."""
+    run(_parse_command_line().sequence)
 
 
 def run(sequence_name: str) -> None:
@@ -25,6 +31,21 @@ def run(sequence_name: str) -> None:
     numpy.random.seed(0)
     torch.manual_seed(0)
     _run_tmft(tracking.tmft.Tmft(configuration), sequence_name)
+
+
+def _parse_command_line() -> argparse.Namespace:
+    """Parse the comment line and return arguments."""
+    parser = argparse.ArgumentParser(
+        description="Run a smoke test using a single OTB-100 sequence.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--sequence",
+        help="The sequence to use for the smoke test. The sequence name is case sensitive.",
+        default="Deer",
+    )
+    arguments = parser.parse_args()
+    return arguments
 
 
 def _run_tmft(tmft: tracking.tmft, sequence: str) -> None:
@@ -56,3 +77,7 @@ def _run_tmft(tmft: tracking.tmft, sequence: str) -> None:
 
 def _load_image(image_path: str):
     return PIL.Image.open(image_path).convert("RGB")
+
+
+if __name__ == "__main__":
+    main()

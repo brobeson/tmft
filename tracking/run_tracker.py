@@ -68,8 +68,8 @@ def train(
     batch_pos = opts["batch_pos"]
     batch_neg = opts["batch_neg"]
     batch_test = opts["batch_test"]
-    properties = torch.cuda.get_device_properties(torch.cuda.device)
-    tensor_size = properties.total_memory / batch_test
+    # properties = torch.cuda.get_device_properties(torch.cuda.device)
+    # tensor_size = properties.total_memory / batch_test
     batch_neg_cand = max(opts["batch_neg_cand"], batch_neg)
     if model_Adnet is not None:
         # batch_pos =  int(opts['batch_pos']/2)
