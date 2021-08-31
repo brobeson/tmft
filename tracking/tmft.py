@@ -8,6 +8,7 @@ import copy
 import numpy
 import PIL.Image
 import torch
+import yaml
 import modules.model
 from modules.sample_generator import SampleGenerator
 from tracking.bbreg import BBRegressor
@@ -32,6 +33,20 @@ def _fix_positive_samples(
     if samples.shape[0] > 0:
         return samples
     return numpy.tile(box, [n, 1])
+
+
+def read_configuration(file_path: str) -> dict:
+    """
+    Read the TMFT configuration from a YAML file on disk.
+
+    Args:
+        file_path (str): The path to the configuration YAML file.
+
+    Returns:
+        dict: The contents of the configuration file as a dictionary.
+    """
+    with open(file_path, "r") as yaml_file:
+        return yaml.safe_load(yaml_file)
 
 
 class Tmft:
