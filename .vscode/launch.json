@@ -40,6 +40,12 @@
       "type": "python",
       "request": "launch",
       "module": "experiments.smoke_test"
+    },
+    {
+      "name": "Pilot Study",
+      "type": "python",
+      "request": "launch",
+      "module": "experiments.pilot_study"
     }
   ]
 }
