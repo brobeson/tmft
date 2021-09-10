@@ -15,8 +15,14 @@ import tracking.tmft
 def main() -> None:
     """The main entry point of the pilot study application."""
     dataset = got10k.datasets.OTB(os.path.expanduser("~/Videos/otb"), version="tb100")
-    for sequence in ["Car4", "Car24", "FleetFace", "Jump"]:
-        run(sequence, dataset)
+    sequences = {"Car4": {}, "Car24": {}, "FleetFace": {}, "Jump": {}}
+    for sequence in sequences:
+        results = run(sequence, dataset)
+        sequences[sequence] = {"mean iou": results[0], "mean time": results[1]}
+    for sequence, results in sequences.items():
+        print(sequence)
+        print(f"  Mean IoU = {results['mean iou']:.3f}")
+        print(f"  Mean t   = {results['mean time']:.3f}")
 
 
 def run(sequence_name: str, dataset: got10k.datasets.OTB) -> None:
@@ -34,12 +40,12 @@ def run(sequence_name: str, dataset: got10k.datasets.OTB) -> None:
     # deterministic; if the test fails, we KNOW it's from our code changes instead of randomness.
     numpy.random.seed(0)
     torch.manual_seed(0)
-    _run_tmft(tracking.tmft.Tmft(configuration), sequence_name, dataset)
+    return _run_tmft(tracking.tmft.Tmft(configuration), sequence_name, dataset)
 
 
 def _run_tmft(tmft: tracking.tmft, sequence: str, dataset: got10k.datasets.OTB) -> None:
     images, groundtruth = dataset[sequence]
-    print("Training on frame 0")
+    print("Training on frame 0 of", sequence)
     tmft.initialize(_load_image(images[0]), groundtruth[0])
     ious = numpy.zeros(len(images))
     frame_processing_times = numpy.zeros(len(images) - 1)
@@ -51,8 +57,7 @@ def _run_tmft(tmft: tracking.tmft, sequence: str, dataset: got10k.datasets.OTB) 
         frame_processing_times[i] = time.time() - start_time
         ious[i + 1] = modules.utils.overlap_ratio(target, gt)
         print(f" IoU = {ious[i + 1]:.3f}  t = {frame_processing_times[i]:.3f}")
-    print(f"Mean IoU = {ious.mean():.3f}")
-    print(f"Mean t   = {frame_processing_times.mean():.3f}")
+    return ious.mean(), frame_processing_times.mean()
 
 
 def _load_image(image_path: str):
