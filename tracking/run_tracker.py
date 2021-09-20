@@ -30,6 +30,7 @@ import networks.domain_adaptation_schedules
 from tracking.data_prov import RegionExtractor
 from tracking.bbreg import BBRegressor
 from tracking.gen_config import gen_config
+import tracking.trainer
 import modules.training
 
 
@@ -95,6 +96,7 @@ def train(
     loss1total = []
     loss2total = []
 
+    hard_miner = tracking.trainer.Miner(batch_test)
     for i in range(maxiter):
         optimizer.zero_grad()
         # select pos idx
@@ -109,27 +111,11 @@ def train(
         neg_cur_idx = neg_feats.new(neg_cur_idx).long()
         neg_pointer = neg_next
 
-        # create batch
+        # Create the training batch.
         batch_pos_feats = pos_feats[pos_cur_idx]
-        batch_neg_feats = neg_feats[neg_cur_idx]
-
-        # hard negative mining
-        if batch_neg_cand > batch_neg:
-            model.eval()
-            for start in range(0, batch_neg_cand, batch_test):
-                end = min(start + batch_test, batch_neg_cand)
-                with torch.no_grad():
-                    score = model(batch_neg_feats[start:end], in_layer=in_layer)
-                if start == 0:
-                    neg_cand_score = score.detach()[:, 1].clone()
-                else:
-                    neg_cand_score = torch.cat(
-                        (neg_cand_score, score.detach()[:, 1].clone()), 0
-                    )
-
-            _, top_idx = neg_cand_score.topk(batch_neg)
-            batch_neg_feats = batch_neg_feats[top_idx]
-            model.train()
+        batch_neg_feats = hard_miner.hard_mine_data(
+            model, batch_neg, batch_neg_cand, neg_feats[neg_cur_idx], in_layer
+        )
 
         # forward
         loss2 = 0

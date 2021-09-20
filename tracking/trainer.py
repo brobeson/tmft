@@ -165,3 +165,32 @@ class Trainer:
             # plt.plot(loss1total)
             # plt.show()
 
+
+class Miner:
+    def __init__(self, batch_test: int) -> None:
+        self.batch_test = batch_test
+
+    def hard_mine_data(
+        self,
+        model,
+        batch_size: int,
+        candidate_count: int,
+        features,
+        in_layer,
+    ) -> torch.Tensor:
+        if candidate_count <= batch_size:
+            return features
+        model.eval()
+        for start in range(0, candidate_count, self.batch_test):
+            end = min(start + self.batch_test, candidate_count)
+            with torch.no_grad():
+                score = model(features[start:end], in_layer=in_layer)
+            if start == 0:
+                neg_cand_score = score.detach()[:, 1].clone()
+            else:
+                neg_cand_score = torch.cat(
+                    (neg_cand_score, score.detach()[:, 1].clone()), 0
+                )
+        _, top_idx = neg_cand_score.topk(batch_size)
+        model.train()
+        return features[top_idx]
