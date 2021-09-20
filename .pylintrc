@@ -3,9 +3,12 @@
 generated-members=
     torch.from_numpy,
     torch.cat,
+    torch.int,
     torch.log,
+    torch.ones_like,
     torch.stack,
-    torch.topk
+    torch.topk,
+    torch.zeros
 
 [MESSAGES CONTROL]
 disable=
