@@ -1,5 +1,5 @@
 """
-Run OTB experiments.
+Run VOT experiments.
 
 Copyright brobeson
 """
@@ -11,12 +11,14 @@ import utilities.command_line as command_line
 
 
 def main() -> None:
-    """The main entry point of the OTB experiment runner."""
+    """The main entry point of the VOT experiment runner."""
     arguments = _parse_command_line()
     print(arguments)
-    experiment = got10k.experiments.ExperimentOTB(
+    experiment = got10k.experiments.ExperimentVOT(
         arguments.dataset_path,
         version=arguments.version,
+        # TODO What do the different experiment types mean?
+        experiments="supervised",
         result_dir=arguments.result_path,
         report_dir=arguments.report_path,
     )
@@ -33,17 +35,17 @@ def _parse_command_line() -> argparse.Namespace:
         argparse.Namespace: The command line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="Run OTB experiments.",
+        description="Run VOT experiments.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--version",
-        help="The OTB dataset to use.",
-        choices=["tb50", "tb100"],
-        default="tb100",
+        help="The VOT dataset to use.",
+        choices=[2013, 2014, 2015, 2016, 2017, 2018],
+        default="2018",
     )
     command_line.add_name_option(parser)
-    command_line.add_dataset_path(parser, "~/Videos/otb")
+    command_line.add_dataset_path(parser, "~/Videos/vot-got")
     command_line.add_result_path(parser)
     command_line.add_report_path(parser)
     arguments = parser.parse_args()

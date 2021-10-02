@@ -1,5 +1,5 @@
 experiments.run
 ===============
 
-.. automodule:: experiments.run
+.. automodule:: experiments.otb
     :members:

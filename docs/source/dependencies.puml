@@ -4,10 +4,11 @@ skinparam Linetype ortho
 
 package experiments {
   [got10k_wrapper]
-  [run]
+  [otb]
+  [pilot_study]
   [smoke_test]
-  [uav_experiments]
-  [vot_experiments]
+  [uav]
+  [vot]
 }
 
 package modules {
@@ -46,18 +47,20 @@ package unit_test {
 
 package utilities {
   [bounding_boxes]
+  [command_line]
   [loss_data]
   [sample_generator] as utilities_sample_generator
 }
 
 [got10k_wrapper] --> [tmft]
-[got10k_wrapper] --> [loss_data]
-[run] --> [smoke_test]
+[otb] --> [got10k_wrapper]
+[otb] --> [command_line]
 [smoke_test] --> [gen_config]
 [smoke_test] --> [tmft]
-[uav_experiments] --> [trackerADMDNet]
-[uav_experiments] --> [tmft]
-[vot_experiments] --> [trackerADMDNet]
+[uav] --> [got10k_wrapper]
+[uav] --> [command_line]
+[vot] --> [got10k_wrapper]
+[vot] --> [command_line]
 
 [model] --> [domain_adaptation_schedules]
 modules_sample_generator --> [utils]

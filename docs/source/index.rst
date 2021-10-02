@@ -15,6 +15,14 @@ User Guide
    user_guide
    tmft_configuration
 
+Developer Guide
+---------------
+
+.. toctree::
+   :maxdepth: 1
+
+   developer_guide
+
 Code Reference
 --------------
 
