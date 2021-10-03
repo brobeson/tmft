@@ -26,14 +26,20 @@
       "module": "experiments.otb",
       "args": [
         "--version",
-        "50"
+        "50",
+        "--slack-file",
+        "~/.slack_channel.yml"
       ]
     },
     {
       "name": "OTB-100",
       "type": "python",
       "request": "launch",
-      "module": "experiments.otb"
+      "module": "experiments.otb",
+      "args": [
+        "--slack-file",
+        "~/.slack_channel.yml"
+      ]
     },
     {
       "name": "Smoke Test",

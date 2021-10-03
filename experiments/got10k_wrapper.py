@@ -4,6 +4,7 @@ Encapsulate TMFT in a tracker class that GOT-10k can use.
 Copyright brobeson
 """
 
+import datetime
 import os.path
 import got10k.trackers
 import tracking.tmft
@@ -46,4 +47,25 @@ def make_default_tracker(name: str) -> Got10kTmft:
             )
         ),
         name=name,
+    )
+
+
+def run_experiment(notifier, experiment, tracker) -> None:
+    """
+    Run an experiment based on the GOT-10k toolkit.
+
+    Args:
+        notifier: A Slack reporter to send notifications.
+        experiment: The GOT-10k experiment object to run.
+        tracker: The tracker to run within the ``experiment``.
+    """
+    notifier.send_message(
+        "Starting experiment at "
+        + datetime.datetime.today().isoformat(sep=" ", timespec="minutes")
+    )
+    experiment.run(tracker)
+    experiment.report(tracker.name)
+    notifier.send_message(
+        "Experiment finished at "
+        + datetime.datetime.today().isoformat(sep=" ", timespec="minutes")
     )
