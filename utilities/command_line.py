@@ -72,3 +72,18 @@ def add_name_option(parser: argparse.ArgumentParser) -> None:
         help="The tracker name to use in experiment results and reports.",
         default="TMFT",
     )
+
+
+def add_slack_option(parser: argparse.ArgumentParser) -> None:
+    """
+    Add the --slack-file option to a command line parser.
+
+    Args:
+        parser (argparse.ArgumentParser): The command line parser to hold the option.
+    """
+    parser.add_argument(
+        "--slack-file",
+        help="The path to a Slack channel configuration file. With this option, the experiment "
+        "script will send notifications to the channel in the file.",
+        action=PathSanitizer,
+    )
