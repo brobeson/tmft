@@ -45,13 +45,23 @@
       "name": "Smoke Test",
       "type": "python",
       "request": "launch",
-      "module": "experiments.smoke_test"
+      "module": "experiments.pilot_study",
+      "args": [
+        "Deer"
+      ]
     },
     {
       "name": "Pilot Study",
       "type": "python",
       "request": "launch",
-      "module": "experiments.pilot_study"
+      "module": "experiments.pilot_study",
+      "args": [
+        "Car4",
+        "Car24",
+        "Deer",
+        "FleetFace",
+        "Jump"
+      ]
     }
   ]
 }

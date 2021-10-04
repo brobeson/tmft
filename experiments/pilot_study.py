@@ -1,67 +1,135 @@
-"""Run a pilot study using four sequences from OTB-100."""
+"""Run a smoke test using a single sequence from OTB-100."""
 
-import os.path
+import argparse
+import os
 import time
 import numpy
 import PIL.Image
 import torch
-import yaml
-import got10k.datasets
+import got10k.experiments
+import experiments.command_line
+import experiments.got10k_wrapper
 import modules.utils
 import tracking.gen_config
 import tracking.tmft
 
 
+class ProgressBar:
+    """
+    An object that can print a progress bar on the console.
+
+    Attributes:
+        margins (tuple): Left and right margins, respectively, measured in columns.
+        maximum (int): The maximum value of the progress bar. The minimum is fixed at 0.
+        label (str): A label to print before the bar. This must fit inside the left margin.
+    """
+
+    def __init__(self, margins: int, maximum: int, label: str):
+        self.margins = margins
+        self.maximum = float(maximum)
+        self.label = label
+
+    def print(self, i: int) -> None:
+        """
+        Print the progress bar on the console.
+
+        Args:
+            i (int): The current value of the progress bar.
+        """
+        bar_capacity = os.get_terminal_size()[0] - self.margins[0] - self.margins[1] - 2
+        bar_width = int(float(i) / self.maximum * bar_capacity)
+        space_width = bar_capacity - bar_width
+        print(
+            self.label,
+            " " * (self.margins[0] - len(self.label)),
+            "[",
+            "=" * bar_width,
+            " " * space_width,
+            "]",
+            sep="",
+            end="\r",
+        )
+
+
 def main() -> None:
-    """The main entry point of the pilot study application."""
-    dataset = got10k.datasets.OTB(os.path.expanduser("~/Videos/otb"), version="tb100")
-    sequences = {"Car4": {}, "Car24": {}, "FleetFace": {}, "Jump": {}}
-    for sequence in sequences:
-        results = run(sequence, dataset)
-        sequences[sequence] = {"mean iou": results[0], "mean time": results[1]}
-    for sequence, results in sequences.items():
+    """The main entry point of the smoke test application."""
+    arguments = _parse_command_line()
+    progress_bar = ProgressBar((len(max(arguments.sequences, key=len)) + 1, 0), 0, "")
+    dataset = got10k.datasets.OTB(arguments.dataset_path, version="tb100")
+    results = {sequence: {} for sequence in arguments.sequences}
+    for sequence in arguments.sequences:
+        sequence_result = run(sequence, dataset, progress_bar)
+        results[sequence] = {
+            "mean iou": sequence_result[0],
+            "mean time": sequence_result[1],
+        }
+    for sequence, results in results.items():
         print(sequence)
         print(f"  Mean IoU = {results['mean iou']:.3f}")
         print(f"  Mean t   = {results['mean time']:.3f}")
 
 
-def run(sequence_name: str, dataset: got10k.datasets.OTB) -> None:
+def run(
+    sequence_name: str, dataset: got10k.datasets.OTB, progress_bar: ProgressBar
+) -> None:
     """
     Run a smoke test on a single sequence.
 
     Args:
         sequence_name (str): The name of the OTB-100 sequence to run. This is case sensitive.
         dataset (got10k.datasets.OTB): The OTB-100 dataset.
+        progress_bar (ProgressBar): A progress bar to print on the console.
     """
-    print("Running the pilot study.")
-    with open("tracking/options.yaml") as yaml_file:
-        configuration = yaml.safe_load(yaml_file)
-    # For the pilot study, ensure the random generators are seeded. This makes the study
-    # deterministic; if the test fails, we KNOW it's from our code changes instead of randomness.
+    # Ensure the random generators are seeded. This makes the study deterministic; if the test
+    # fails, we KNOW it's from our code changes instead of randomness.
     numpy.random.seed(0)
     torch.manual_seed(0)
-    return _run_tmft(tracking.tmft.Tmft(configuration), sequence_name, dataset)
-
-
-def _run_tmft(tmft: tracking.tmft, sequence: str, dataset: got10k.datasets.OTB) -> None:
-    images, groundtruth = dataset[sequence]
-    print("Training on frame 0 of", sequence)
-    tmft.initialize(_load_image(images[0]), groundtruth[0])
+    tmft = tracking.tmft.Tmft(tracking.tmft.read_configuration("tracking/options.yaml"))
+    images, groundtruth = dataset[sequence_name]
+    progress_bar.label = sequence_name
+    progress_bar.maximum = len(images)
+    print("Initializing", sequence_name, "on frame 0...", end="\r")
+    tmft.initialize(load_image(images[0]), groundtruth[0])
     ious = numpy.zeros(len(images))
     frame_processing_times = numpy.zeros(len(images) - 1)
     ious[0] = 1.0
-    for i, (image_file, gt) in enumerate(zip(images[1:], groundtruth[1:])):
-        print("Frame", str(i + 1).rjust(3, " "), end="")
+    for i, (image_file, gt) in enumerate(zip(images[1:], groundtruth[1:]), start=1):
         start_time = time.time()
-        target = tmft.find_target(_load_image(image_file))
+        target = tmft.find_target(load_image(image_file))
         frame_processing_times[i] = time.time() - start_time
-        ious[i + 1] = modules.utils.overlap_ratio(target, gt)
-        print(f" IoU = {ious[i + 1]:.3f}  t = {frame_processing_times[i]:.3f}")
-    return ious.mean(), frame_processing_times.mean()
+        ious[i] = modules.utils.overlap_ratio(target, gt)
+        progress_bar.print(i)
+    print()
+    return ious.mean(), frame_processing_times[1:].mean()
 
 
-def _load_image(image_path: str):
+def load_image(image_path: str) -> PIL.Image.Image:
+    """
+    Load a sequence image from disk.
+
+    Args:
+        image_path (str): The path to the image on disk.
+
+    Returns:
+        PIL.Image.Image: The sequence image in RGB format.
+    """
     return PIL.Image.open(image_path).convert("RGB")
+
+
+def _parse_command_line() -> argparse.Namespace:
+    """Parse the comment line and return arguments."""
+    parser = argparse.ArgumentParser(
+        description="Run a smoke test using a single OTB-100 sequence.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "sequences",
+        help="The sequences to use for the smoke test. The sequence names are case sensitive.",
+        nargs="+",
+    )
+    experiments.command_line.add_dataset_path(parser, "~/Videos/otb")
+    arguments = parser.parse_args()
+    return arguments
 
 
 if __name__ == "__main__":

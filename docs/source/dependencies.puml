@@ -1,93 +1,140 @@
 @startuml
-
-skinparam Linetype ortho
-
-package experiments {
-  [got10k_wrapper]
-  [otb]
-  [pilot_study]
-  [smoke_test]
-  [uav]
-  [vot]
+skinparam linetype ortho
+frame utilities as utilities {
+[bounding_boxes] as utilities.bounding_boxes
 }
-
-package modules {
-  [model] <<MDNet>>
-  [sample_generator] as modules_sample_generator <<MDNet>>
-  [training]
-  [utils] <<MDNet>>
+frame utilities as utilities {
+[sample_generator] as utilities.sample_generator
 }
-
-package networks {
-  [domain_adaptation_schedules]
+frame utilities as utilities {
+[loss_data] as utilities.loss_data
 }
-
-package pretrain {
-  [data_prov] as pretrain_data_prov <<MDNet>>
-  [prepro_imagenet] <<MDNet>>
-  [prepro_otb]
-  [prepro_vot] <<MDNet>>
-  [train_mdnet] <<MDNet>>
+frame pretrain as pretrain {
+[prepro_otb] as pretrain.prepro_otb
 }
-
-package tracking {
-  [bbreg] <<MDNet>>
-  [data_prov] as tracking_data_prov <<MDNet>>
-  [gen_config] <<MDNet>>
-  [run_tracker] <<MDNet>>
-  [tmft]
+frame pretrain as pretrain {
+[train_mdnet] as pretrain.train_mdnet
 }
-
-package unit_test {
-  [test_got10k_wrapper]
-  [test_domain_adaptation_schedules]
-  [test_grl]
-  [test_loss_data]
+frame pretrain as pretrain {
+[prepro_imagenet] as pretrain.prepro_imagenet
 }
-
-package utilities {
-  [bounding_boxes]
-  [command_line]
-  [loss_data]
-  [sample_generator] as utilities_sample_generator
+frame pretrain as pretrain {
+[prepro_vot] as pretrain.prepro_vot
 }
-
-[got10k_wrapper] --> [tmft]
-[otb] --> [got10k_wrapper]
-[otb] --> [command_line]
-[smoke_test] --> [gen_config]
-[smoke_test] --> [tmft]
-[uav] --> [got10k_wrapper]
-[uav] --> [command_line]
-[vot] --> [got10k_wrapper]
-[vot] --> [command_line]
-
-[model] --> [domain_adaptation_schedules]
-modules_sample_generator --> [utils]
-
-pretrain_data_prov --> modules_sample_generator
-pretrain_data_prov --> [utils]
-[train_mdnet] --> pretrain_data_prov
-[train_mdnet] --> [model]
-
-[bbreg] --> [utils]
-tracking_data_prov --> [utils]
-[run_tracker] --> [model]
-[run_tracker] --> modules_sample_generator
-[run_tracker] --> [utils]
-[run_tracker] --> [domain_adaptation_schedules]
-[run_tracker] --> tracking_data_prov
-[run_tracker] --> [bbreg]
-[run_tracker] --> [gen_config]
-[tmft] --> [model]
-[tmft] --> modules_sample_generator
-[tmft] --> [bbreg]
-[tmft] --> [run_tracker]
-
-[test_got10k_wrapper] --> [got10k_wrapper]
-[test_domain_adaptation_schedules] --> [domain_adaptation_schedules]
-[test_loss_data] --> [loss_data]
-[test_grl] --> [domain_adaptation_schedules]
-
-utilities_sample_generator --> [bounding_boxes]
+frame pretrain as pretrain {
+[data_prov] as pretrain.data_prov
+}
+frame unit_tests as unit_tests {
+[test_loss_data] as unit_tests.test_loss_data
+}
+frame unit_tests as unit_tests {
+frame experiments as unit_tests.experiments {
+[test_got10k_wrapper] as unit_tests.experiments.test_got10k_wrapper
+}
+}
+frame unit_tests as unit_tests {
+frame networks as unit_tests.networks {
+[test_grl] as unit_tests.networks.test_grl
+}
+}
+frame unit_tests as unit_tests {
+frame networks as unit_tests.networks {
+[test_domain_adaptation_schedules] as unit_tests.networks.test_domain_adaptation_schedules
+}
+}
+frame tracking as tracking {
+[trainer] as tracking.trainer
+}
+frame tracking as tracking {
+[run_tracker] as tracking.run_tracker
+}
+frame tracking as tracking {
+[gen_config] as tracking.gen_config
+}
+frame tracking as tracking {
+[tmft] as tracking.tmft
+}
+frame tracking as tracking {
+[data_prov] as tracking.data_prov
+}
+frame tracking as tracking {
+[bbreg] as tracking.bbreg
+}
+frame modules as modules {
+[sample_generator] as modules.sample_generator
+}
+frame modules as modules {
+[training] as modules.training
+}
+frame modules as modules {
+[utils] as modules.utils
+}
+frame modules as modules {
+[model] as modules.model
+}
+frame experiments as experiments {
+[uav] as experiments.uav
+}
+frame experiments as experiments {
+[otb] as experiments.otb
+}
+frame experiments as experiments {
+[command_line] as experiments.command_line
+}
+frame experiments as experiments {
+[vot] as experiments.vot
+}
+frame experiments as experiments {
+[got10k_wrapper] as experiments.got10k_wrapper
+}
+frame experiments as experiments {
+[pilot_study] as experiments.pilot_study
+}
+frame experiments as experiments {
+[slack_reporter] as experiments.slack_reporter
+}
+frame networks as networks {
+[domain_adaptation_schedules] as networks.domain_adaptation_schedules
+}
+[utilities.sample_generator] --> [utilities.bounding_boxes]
+[pretrain.train_mdnet] --> [pretrain.data_prov]
+[pretrain.train_mdnet] --> [modules.model]
+[pretrain.data_prov] --> [modules.utils]
+[pretrain.data_prov] --> [modules.sample_generator]
+[unit_tests.test_loss_data] --> [utilities.loss_data]
+[unit_tests.experiments.test_got10k_wrapper] --> [experiments.got10k_wrapper]
+[unit_tests.networks.test_grl] --> [networks.domain_adaptation_schedules]
+[unit_tests.networks.test_domain_adaptation_schedules] --> [networks.domain_adaptation_schedules]
+[tracking.run_tracker] --> [modules.model]
+[tracking.run_tracker] --> [tracking.gen_config]
+[tracking.run_tracker] --> [modules.utils]
+[tracking.run_tracker] --> [modules.training]
+[tracking.run_tracker] --> [modules.sample_generator]
+[tracking.run_tracker] --> [tracking.bbreg]
+[tracking.run_tracker] --> [tracking.trainer]
+[tracking.run_tracker] --> [tracking.data_prov]
+[tracking.run_tracker] --> [networks.domain_adaptation_schedules]
+[tracking.tmft] --> [tracking.bbreg]
+[tracking.tmft] --> [tracking.run_tracker]
+[tracking.tmft] --> [modules.sample_generator]
+[tracking.tmft] --> [modules.model]
+[tracking.data_prov] --> [modules.utils]
+[tracking.bbreg] --> [modules.utils]
+[modules.sample_generator] --> [modules.utils]
+[modules.model] --> [networks.domain_adaptation_schedules]
+[experiments.uav] --> [experiments.command_line]
+[experiments.uav] --> [experiments.slack_reporter]
+[experiments.uav] --> [experiments.got10k_wrapper]
+[experiments.otb] --> [experiments.command_line]
+[experiments.otb] --> [experiments.slack_reporter]
+[experiments.otb] --> [experiments.got10k_wrapper]
+[experiments.vot] --> [experiments.command_line]
+[experiments.vot] --> [experiments.slack_reporter]
+[experiments.vot] --> [experiments.got10k_wrapper]
+[experiments.got10k_wrapper] --> [tracking.tmft]
+[experiments.pilot_study] --> [tracking.tmft]
+[experiments.pilot_study] --> [modules.utils]
+[experiments.pilot_study] --> [experiments.command_line]
+[experiments.pilot_study] --> [tracking.gen_config]
+[experiments.pilot_study] --> [experiments.got10k_wrapper]
 @enduml
