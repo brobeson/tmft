@@ -8,7 +8,7 @@ import argparse
 import got10k.experiments
 import experiments.got10k_wrapper
 import experiments.slack_reporter
-import utilities.command_line as command_line
+import experiments.command_line as command_line
 
 
 def main() -> None:
