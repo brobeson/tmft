@@ -36,7 +36,7 @@
       "name": "OTB-100",
       "type": "python",
       "request": "launch",
-      "module": "experiments.otb",
+      "module": "experiments.got10k_experiments",
       "args": [
         "--dataset-path",
         "~/Videos/otb",

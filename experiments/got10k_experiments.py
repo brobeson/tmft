@@ -76,7 +76,6 @@ def parse_command_line() -> argparse.Namespace:
         "version",
         help="The dataset to use. ",
         choices=OTB_VERSIONS + VOT_VERSIONS + UAV_VERSIONS,
-        nargs=1,
     )
     arguments = parser.parse_args()
     return arguments
