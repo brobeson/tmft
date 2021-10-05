@@ -167,30 +167,45 @@ class Trainer:
 
 
 class Miner:
+    """
+    Mines training data that tends to confuse the CNN.
+
+    Attributes:
+        batch_test (int): The number of training candidates to score at one time. The
+            :py:class:Miner sends this number of training candidates through the CNN at one time
+            when mining training samples.
+    """
+
     def __init__(self, batch_test: int) -> None:
         self.batch_test = batch_test
 
     def hard_mine_data(
-        self,
-        model,
-        batch_size: int,
-        candidate_count: int,
-        features,
-        in_layer,
+        self, model, batch_size: int, features: torch.Tensor, in_layer: str,
     ) -> torch.Tensor:
-        if candidate_count <= batch_size:
+        """
+        Mine training samples from a given set of training candidates.
+
+        Args:
+            model (modules.model.MDNet): The tracker CNN to use for mining candidates.
+            batch_size (int): The final number of samples to mine from the candidates.
+            features (torch.Tensor): The set of features for the candidate pool. This should be the
+                output of the `model`'s 3rd layer.
+            in_layer (str): The label for the layer to use to start sending the `features` through
+                the `model`.
+
+        Returns:
+            torch.Tensor: A subset of `features` representing the mined training samples.
+        """
+        if features.size(0) <= batch_size:
             return features
         model.eval()
-        for start in range(0, candidate_count, self.batch_test):
-            end = min(start + self.batch_test, candidate_count)
-            with torch.no_grad():
-                score = model(features[start:end], in_layer=in_layer)
-            if start == 0:
-                neg_cand_score = score.detach()[:, 1].clone()
-            else:
-                neg_cand_score = torch.cat(
-                    (neg_cand_score, score.detach()[:, 1].clone()), 0
-                )
-        _, top_idx = neg_cand_score.topk(batch_size)
+        with torch.no_grad():
+            candidate_scores = torch.empty((features.size(0)), device="cuda")
+            for start in range(0, features.size(0), self.batch_test):
+                end = start + self.batch_test
+                candidate_scores[start:end] = model(
+                    features[start:end], in_layer=in_layer
+                )[:, 1]
+        _, top_idx = candidate_scores.topk(batch_size)
         model.train()
         return features[top_idx]

@@ -114,7 +114,7 @@ def train(
         # Create the training batch.
         batch_pos_feats = pos_feats[pos_cur_idx]
         batch_neg_feats = hard_miner.hard_mine_data(
-            model, batch_neg, batch_neg_cand, neg_feats[neg_cur_idx], in_layer
+            model, batch_neg, neg_feats[neg_cur_idx], in_layer
         )
 
         # forward
