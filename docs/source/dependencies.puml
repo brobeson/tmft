@@ -1,5 +1,66 @@
 @startuml
 skinparam linetype ortho
+frame networks as networks {
+[domain_adaptation_schedules] as networks.domain_adaptation_schedules
+}
+frame pretrain as pretrain {
+[prepro_imagenet] as pretrain.prepro_imagenet
+}
+frame pretrain as pretrain {
+[train_mdnet] as pretrain.train_mdnet
+}
+frame pretrain as pretrain {
+[data_prov] as pretrain.data_prov
+}
+frame pretrain as pretrain {
+[prepro_vot] as pretrain.prepro_vot
+}
+frame pretrain as pretrain {
+[prepro_otb] as pretrain.prepro_otb
+}
+frame experiments as experiments {
+[slack_reporter] as experiments.slack_reporter
+}
+frame experiments as experiments {
+[command_line] as experiments.command_line
+}
+frame experiments as experiments {
+[pilot_study] as experiments.pilot_study
+}
+frame experiments as experiments {
+[got10k_experiments] as experiments.got10k_experiments
+}
+frame unit_tests as unit_tests {
+[test_loss_data] as unit_tests.test_loss_data
+}
+frame unit_tests as unit_tests {
+frame networks as unit_tests.networks {
+[test_domain_adaptation_schedules] as unit_tests.networks.test_domain_adaptation_schedules
+}
+}
+frame unit_tests as unit_tests {
+frame networks as unit_tests.networks {
+[test_grl] as unit_tests.networks.test_grl
+}
+}
+frame tracking as tracking {
+[run_tracker] as tracking.run_tracker
+}
+frame tracking as tracking {
+[tmft] as tracking.tmft
+}
+frame tracking as tracking {
+[bbreg] as tracking.bbreg
+}
+frame tracking as tracking {
+[data_prov] as tracking.data_prov
+}
+frame tracking as tracking {
+[trainer] as tracking.trainer
+}
+frame tracking as tracking {
+[gen_config] as tracking.gen_config
+}
 frame utilities as utilities {
 [bounding_boxes] as utilities.bounding_boxes
 }
@@ -9,56 +70,11 @@ frame utilities as utilities {
 frame utilities as utilities {
 [loss_data] as utilities.loss_data
 }
-frame pretrain as pretrain {
-[prepro_otb] as pretrain.prepro_otb
+frame modules as modules {
+[utils] as modules.utils
 }
-frame pretrain as pretrain {
-[train_mdnet] as pretrain.train_mdnet
-}
-frame pretrain as pretrain {
-[prepro_imagenet] as pretrain.prepro_imagenet
-}
-frame pretrain as pretrain {
-[prepro_vot] as pretrain.prepro_vot
-}
-frame pretrain as pretrain {
-[data_prov] as pretrain.data_prov
-}
-frame unit_tests as unit_tests {
-[test_loss_data] as unit_tests.test_loss_data
-}
-frame unit_tests as unit_tests {
-frame experiments as unit_tests.experiments {
-[test_got10k_wrapper] as unit_tests.experiments.test_got10k_wrapper
-}
-}
-frame unit_tests as unit_tests {
-frame networks as unit_tests.networks {
-[test_grl] as unit_tests.networks.test_grl
-}
-}
-frame unit_tests as unit_tests {
-frame networks as unit_tests.networks {
-[test_domain_adaptation_schedules] as unit_tests.networks.test_domain_adaptation_schedules
-}
-}
-frame tracking as tracking {
-[trainer] as tracking.trainer
-}
-frame tracking as tracking {
-[run_tracker] as tracking.run_tracker
-}
-frame tracking as tracking {
-[gen_config] as tracking.gen_config
-}
-frame tracking as tracking {
-[tmft] as tracking.tmft
-}
-frame tracking as tracking {
-[data_prov] as tracking.data_prov
-}
-frame tracking as tracking {
-[bbreg] as tracking.bbreg
+frame modules as modules {
+[model] as modules.model
 }
 frame modules as modules {
 [sample_generator] as modules.sample_generator
@@ -66,75 +82,36 @@ frame modules as modules {
 frame modules as modules {
 [training] as modules.training
 }
-frame modules as modules {
-[utils] as modules.utils
-}
-frame modules as modules {
-[model] as modules.model
-}
-frame experiments as experiments {
-[uav] as experiments.uav
-}
-frame experiments as experiments {
-[otb] as experiments.otb
-}
-frame experiments as experiments {
-[command_line] as experiments.command_line
-}
-frame experiments as experiments {
-[vot] as experiments.vot
-}
-frame experiments as experiments {
-[got10k_wrapper] as experiments.got10k_wrapper
-}
-frame experiments as experiments {
-[pilot_study] as experiments.pilot_study
-}
-frame experiments as experiments {
-[slack_reporter] as experiments.slack_reporter
-}
-frame networks as networks {
-[domain_adaptation_schedules] as networks.domain_adaptation_schedules
-}
-[utilities.sample_generator] --> [utilities.bounding_boxes]
 [pretrain.train_mdnet] --> [pretrain.data_prov]
 [pretrain.train_mdnet] --> [modules.model]
 [pretrain.data_prov] --> [modules.utils]
 [pretrain.data_prov] --> [modules.sample_generator]
-[unit_tests.test_loss_data] --> [utilities.loss_data]
-[unit_tests.experiments.test_got10k_wrapper] --> [experiments.got10k_wrapper]
-[unit_tests.networks.test_grl] --> [networks.domain_adaptation_schedules]
-[unit_tests.networks.test_domain_adaptation_schedules] --> [networks.domain_adaptation_schedules]
-[tracking.run_tracker] --> [modules.model]
-[tracking.run_tracker] --> [tracking.gen_config]
-[tracking.run_tracker] --> [modules.utils]
-[tracking.run_tracker] --> [modules.training]
-[tracking.run_tracker] --> [modules.sample_generator]
-[tracking.run_tracker] --> [tracking.bbreg]
-[tracking.run_tracker] --> [tracking.trainer]
-[tracking.run_tracker] --> [tracking.data_prov]
-[tracking.run_tracker] --> [networks.domain_adaptation_schedules]
-[tracking.tmft] --> [tracking.bbreg]
-[tracking.tmft] --> [tracking.run_tracker]
-[tracking.tmft] --> [modules.sample_generator]
-[tracking.tmft] --> [modules.model]
-[tracking.data_prov] --> [modules.utils]
-[tracking.bbreg] --> [modules.utils]
-[modules.sample_generator] --> [modules.utils]
-[modules.model] --> [networks.domain_adaptation_schedules]
-[experiments.uav] --> [experiments.command_line]
-[experiments.uav] --> [experiments.slack_reporter]
-[experiments.uav] --> [experiments.got10k_wrapper]
-[experiments.otb] --> [experiments.command_line]
-[experiments.otb] --> [experiments.slack_reporter]
-[experiments.otb] --> [experiments.got10k_wrapper]
-[experiments.vot] --> [experiments.command_line]
-[experiments.vot] --> [experiments.slack_reporter]
-[experiments.vot] --> [experiments.got10k_wrapper]
-[experiments.got10k_wrapper] --> [tracking.tmft]
-[experiments.pilot_study] --> [tracking.tmft]
 [experiments.pilot_study] --> [modules.utils]
 [experiments.pilot_study] --> [experiments.command_line]
 [experiments.pilot_study] --> [tracking.gen_config]
-[experiments.pilot_study] --> [experiments.got10k_wrapper]
+[experiments.pilot_study] --> [tracking.tmft]
+[experiments.got10k_experiments] --> [experiments.slack_reporter]
+[experiments.got10k_experiments] --> [experiments.command_line]
+[experiments.got10k_experiments] --> [tracking.tmft]
+[unit_tests.test_loss_data] --> [utilities.loss_data]
+[unit_tests.networks.test_domain_adaptation_schedules] --> [networks.domain_adaptation_schedules]
+[unit_tests.networks.test_grl] --> [networks.domain_adaptation_schedules]
+[tracking.run_tracker] --> [tracking.gen_config]
+[tracking.run_tracker] --> [modules.training]
+[tracking.run_tracker] --> [modules.sample_generator]
+[tracking.run_tracker] --> [tracking.bbreg]
+[tracking.run_tracker] --> [networks.domain_adaptation_schedules]
+[tracking.run_tracker] --> [tracking.data_prov]
+[tracking.run_tracker] --> [modules.utils]
+[tracking.run_tracker] --> [modules.model]
+[tracking.run_tracker] --> [tracking.trainer]
+[tracking.tmft] --> [tracking.run_tracker]
+[tracking.tmft] --> [tracking.bbreg]
+[tracking.tmft] --> [modules.model]
+[tracking.tmft] --> [modules.sample_generator]
+[tracking.bbreg] --> [modules.utils]
+[tracking.data_prov] --> [modules.utils]
+[utilities.sample_generator] --> [utilities.bounding_boxes]
+[modules.model] --> [networks.domain_adaptation_schedules]
+[modules.sample_generator] --> [modules.utils]
 @enduml

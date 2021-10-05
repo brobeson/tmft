@@ -23,12 +23,13 @@
       "name": "OTB-50",
       "type": "python",
       "request": "launch",
-      "module": "experiments.otb",
+      "module": "experiments.got10k_experiments",
       "args": [
-        "--version",
-        "50",
+        "--dataset-path",
+        "~/Videos/otb",
         "--slack-file",
-        "~/.slack_channel.yml"
+        "~/.slack_channel.yml",
+        "tb50"
       ]
     },
     {
@@ -37,8 +38,11 @@
       "request": "launch",
       "module": "experiments.otb",
       "args": [
+        "--dataset-path",
+        "~/Videos/otb",
         "--slack-file",
-        "~/.slack_channel.yml"
+        "~/.slack_channel.yml",
+        "tb100"
       ]
     },
     {
