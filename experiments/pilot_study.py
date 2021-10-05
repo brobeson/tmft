@@ -8,7 +8,6 @@ import PIL.Image
 import torch
 import got10k.experiments
 import experiments.command_line
-import experiments.got10k_wrapper
 import modules.utils
 import tracking.gen_config
 import tracking.tmft
@@ -91,14 +90,15 @@ def run(
     print("Initializing", sequence_name, "on frame 0...", end="\r")
     tmft.initialize(load_image(images[0]), groundtruth[0])
     ious = numpy.zeros(len(images))
-    frame_processing_times = numpy.zeros(len(images) - 1)
+    frame_processing_times = numpy.zeros(len(images))
     ious[0] = 1.0
     for i, (image_file, gt) in enumerate(zip(images[1:], groundtruth[1:]), start=1):
+        progress_bar.print(i)
         start_time = time.time()
         target = tmft.find_target(load_image(image_file))
         frame_processing_times[i] = time.time() - start_time
         ious[i] = modules.utils.overlap_ratio(target, gt)
-        progress_bar.print(i)
+    progress_bar.print(progress_bar.maximum)
     print()
     return ious.mean(), frame_processing_times[1:].mean()
 
