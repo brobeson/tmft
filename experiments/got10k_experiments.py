@@ -93,12 +93,17 @@ def make_experiment(experiment_configuration: argparse.Namespace):
         The GOT-10k experiment to run.
     """
     if experiment_configuration.version in OTB_VERSIONS:
-        return got10k.experiments.ExperimentOTB(
+        experiment = got10k.experiments.ExperimentOTB(
             experiment_configuration.dataset_path,
             experiment_configuration.version,
-            experiment_configuration.result_path,
-            experiment_configuration.report_path,
+            report_dir=experiment_configuration.report_path,
         )
+        # GOTCHA!
+        # GOT-10k adds a subdirectory to the result directory in
+        # ExperimentOTB.__init__(). I don't want that; it prevents reusing the tracking results
+        # from tb100 for tb50.
+        experiment.result_dir = experiment_configuration.result_path
+        return experiment
     if experiment_configuration.version in VOT_VERSIONS:
         return got10k.experiments.ExperimentVOT(
             experiment_configuration.dataset_path,
@@ -133,12 +138,15 @@ def run_experiment(notifier, experiment, tracker) -> None:
         "Starting experiment at "
         + datetime.datetime.today().isoformat(sep=" ", timespec="minutes")
     )
-    experiment.run(tracker)
-    experiment.report(tracker.name)
-    notifier.send_message(
-        "Experiment finished at "
-        + datetime.datetime.today().isoformat(sep=" ", timespec="minutes")
-    )
+    try:
+        experiment.run(tracker)
+        experiment.report([tracker.name])
+        notifier.send_message(
+            "Experiment finished at "
+            + datetime.datetime.today().isoformat(sep=" ", timespec="minutes")
+        )
+    except Exception as error:  # pylint: disable=broad-except
+        notifier.send_message(f"Error during experiment: '{str(error)}'")
 
 
 if __name__ == "__main__":
