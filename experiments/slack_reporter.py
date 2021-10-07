@@ -40,8 +40,7 @@ class SlackReporter:
     def __start_new_thread(self, message: str) -> None:
         try:
             response = self.__client.chat_postMessage(
-                channel=self.__channel,
-                text=self.__format_message(message),
+                channel=self.__channel, text=self.__format_message(message),
             )
             self.__ts = response["ts"]
         except SlackApiError as e:
@@ -59,36 +58,6 @@ class SlackReporter:
 
     def __format_message(self, message: str) -> str:
         return f"[ {self.__source} ]  {message}"
-
-
-class SlackDropper:
-    """
-    A Slack reporter that doesn't report anything.
-
-    This reporter simply drops messages. The use case for this reporter is to avoid adding logic
-    to the experiments anytime a reporter is used. If the user disabled Slack notifications, just
-    pass a :py:class:`SlackDropper` object instead of a :py:class:`SlackReporter` object.
-    """
-
-    def send_message(self, message: str) -> None:
-        """
-        Drop a message.
-
-        Args:
-            message (str): This is not used in the method.
-        """
-        pass
-
-
-def make_slack_reporter(configuration_file: str, source: str):
-    """
-    Args:
-        configuration_file (str): [description]
-        source (str): [description]
-    """
-    if configuration_file is not None:
-        return SlackReporter(source, **read_slack_configuration(configuration_file))
-    return SlackDropper()
 
 
 def read_slack_configuration(filepath: str) -> dict:

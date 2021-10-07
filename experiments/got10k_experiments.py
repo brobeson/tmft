@@ -7,6 +7,7 @@ Copyright brobeson
 import argparse
 import datetime
 import os
+from typing import Union
 import got10k.experiments
 import got10k.trackers
 import experiments.command_line as command_line
@@ -38,13 +39,27 @@ class Got10kTmft(got10k.trackers.Tracker):
         return self.tracker.find_target(image)
 
 
+class ConsoleReporter:
+    """
+    An alternative to :py:class`experiments.slack_reporter.SlackReporter`. This reporter prints
+    messages to the console.
+    """
+
+    def send_message(self, message: str) -> None:  # pylint: disable=no-self-use
+        """
+        Print a message to the console.
+
+        Args:
+            message (str): This is not used in the method.
+        """
+        print(message)
+
+
 def main() -> None:
     """The main entry function for running official benchmark experiments."""
     arguments = parse_command_line()
     experiment = make_experiment(arguments)
-    notifier = slack_reporter.make_slack_reporter(
-        arguments.slack_file, os.uname().nodename
-    )
+    notifier = make_notifier(arguments.slack_file, os.uname().nodename)
     tracker = Got10kTmft(
         tracking.tmft.Tmft(
             tracking.tmft.read_configuration(
@@ -79,6 +94,28 @@ def parse_command_line() -> argparse.Namespace:
     )
     arguments = parser.parse_args()
     return arguments
+
+
+def make_notifier(
+    configuration_file: str, source: str
+) -> Union[ConsoleReporter, slack_reporter.SlackReporter]:
+    """
+    Make an appropriate notifier object.
+
+    Args:
+        configuration_file (str | None): The path to the Slack configuration file.
+        source (str): The source to use for Slack reporting.
+
+    Returns:
+        slack_reporter.SlackReporter | ConsoleReporter: If the function can load the
+        ``configuration_file``, the function returns a :py:class:`slack_reporter.SlackReporter`
+        object. Otherwise, the function returns a :py:class:`ConsoleReporter` object.
+    """
+    if configuration_file is not None and os.path.isfile(configuration_file):
+        return slack_reporter.SlackReporter(
+            source, **slack_reporter.read_slack_configuration(configuration_file)
+        )
+    return ConsoleReporter()
 
 
 def make_experiment(experiment_configuration: argparse.Namespace):
