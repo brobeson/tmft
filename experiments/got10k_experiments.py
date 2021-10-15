@@ -7,6 +7,7 @@ Copyright brobeson
 import argparse
 import datetime
 import os
+import sys
 from typing import Union
 import got10k.experiments
 import got10k.trackers
@@ -59,16 +60,10 @@ def main() -> None:
     """The main entry function for running official benchmark experiments."""
     arguments = parse_command_line()
     experiment = make_experiment(arguments)
-    notifier = make_notifier(arguments.slack_file, os.uname().nodename)
-    tracker = Got10kTmft(
-        tracking.tmft.Tmft(
-            tracking.tmft.read_configuration(
-                os.path.expanduser("~/repositories/tmft/tracking/options.yaml")
-            )
-        ),
-        name=arguments.tracker_name,
-    )
-    run_experiment(notifier, experiment, tracker, arguments.report_trackers)
+    if arguments.tracker_name is not None:
+        run_tracker(experiment, arguments.tracker_name, arguments.slack_file)
+    if arguments.report_trackers is not None:
+        experiment.report(arguments.report_trackers)
 
 
 def parse_command_line() -> argparse.Namespace:
@@ -169,27 +164,33 @@ def make_experiment(experiment_configuration: argparse.Namespace):
     )
 
 
-def run_experiment(notifier, experiment, tracker, report_trackers: list) -> None:
+def run_tracker(experiment, tracker_name: str, slack_file: str) -> None:
     """
     Run an experiment based on the GOT-10k toolkit.
 
     Args:
-        notifier: A Slack reporter to send notifications.
         experiment: The GOT-10k experiment object to run.
-        tracker: The tracker to run within the ``experiment``.
-        report_trackers (list | None): A list of other trackers to include in the report.
+        tracker_name (str): The name of the tracker to run within the ``experiment``.
+        slack_file (str | None): The Slack configuration file. If this is ``None``, console
+            notifications are used.
     """
-    if report_trackers is None:
-        report_trackers = [tracker.name]
-    else:
-        report_trackers.append(tracker.name)
+    notifier = make_notifier(slack_file, sys.platform)
+    tracker = Got10kTmft(
+        tracking.tmft.Tmft(
+            tracking.tmft.read_configuration(
+                os.path.expanduser("~/repositories/tmft/tracking/options.yaml")
+            )
+        ),
+        name=tracker_name,
+    )
     notifier.send_message(
-        "Starting experiment at "
+        "Starting "
+        + tracker_name
+        + " experiment at "
         + datetime.datetime.today().isoformat(sep=" ", timespec="minutes")
     )
     try:
         experiment.run(tracker)
-        experiment.report(report_trackers)
         notifier.send_message(
             "Experiment finished at "
             + datetime.datetime.today().isoformat(sep=" ", timespec="minutes")

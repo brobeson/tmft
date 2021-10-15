@@ -70,7 +70,6 @@ def add_name_option(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--tracker-name",
         help="The tracker name to use in experiment results and reports.",
-        default="TMFT",
     )
 
 
