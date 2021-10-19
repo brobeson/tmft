@@ -191,12 +191,13 @@ def run_tracker(experiment, tracker_name: str, slack_file: str) -> None:
     )
     try:
         experiment.run(tracker)
+    except Exception as error:  # pylint: disable=broad-except
+        notifier.send_message(f"Error during experiment: '{str(error)}'")
+    else:
         notifier.send_message(
             "Experiment finished at "
             + datetime.datetime.today().isoformat(sep=" ", timespec="minutes")
         )
-    except Exception as error:  # pylint: disable=broad-except
-        notifier.send_message(f"Error during experiment: '{str(error)}'")
 
 
 if __name__ == "__main__":
