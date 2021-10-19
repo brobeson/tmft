@@ -31,7 +31,6 @@ from tracking.data_prov import RegionExtractor
 from tracking.bbreg import BBRegressor
 from tracking.gen_config import gen_config
 import tracking.trainer
-import modules.training
 
 
 if os.path.exists("tracking/options.yaml"):
