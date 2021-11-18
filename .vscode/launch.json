@@ -1,5 +1,13 @@
 {
   "version": "0.2.0",
+  "inputs": [
+    {
+      "id": "trackerName",
+      "type": "promptString",
+      "description": "Name the tracker.",
+      "default": "TMFT"
+    }
+  ],
   "configurations": [
     // {
     //   "name": "VOT Experiments",
@@ -7,12 +15,21 @@
     //   "request": "launch",
     //   "module": "vot_experiments"
     // },
-    // {
-    //   "name": "UAV123",
-    //   "type": "python",
-    //   "request": "launch",
-    //   "module": "uav_experiments"
-    // },
+    {
+      "name": "UAV123",
+      "type": "python",
+      "request": "launch",
+      "module": "experiments.got10k_experiments",
+      "args": [
+        "--tracker-name",
+        "${input:trackerName}",
+        "--dataset-path",
+        "~/Videos/uav123",
+        "--slack-file",
+        "~/.slack_channel.yml",
+        "uav123"
+      ]
+    },
     // {
     //   "name": "GOT-10k",
     //   "type": "python",
