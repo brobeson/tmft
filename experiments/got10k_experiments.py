@@ -16,7 +16,7 @@ import experiments.slack_reporter as slack_reporter
 import tracking.tmft
 
 OTB_VERSIONS = ["tb50", "tb100"]
-VOT_VERSIONS = [2013, 2014, 2015, 2016, 2017, 2018]
+VOT_VERSIONS = ["2013", "2014", "2015", "2016", "2017", "2018", "2019"]
 UAV_VERSIONS = ["uav123", "uav20l"]
 
 
@@ -146,7 +146,7 @@ def make_experiment(experiment_configuration: argparse.Namespace):
     if experiment_configuration.version in VOT_VERSIONS:
         return got10k.experiments.ExperimentVOT(
             experiment_configuration.dataset_path,
-            experiment_configuration.version,
+            int(experiment_configuration.version),
             read_image=True,
             experiments="supervised",
             result_dir=experiment_configuration.result_path,

@@ -9,12 +9,21 @@
     }
   ],
   "configurations": [
-    // {
-    //   "name": "VOT Experiments",
-    //   "type": "python",
-    //   "request": "launch",
-    //   "module": "vot_experiments"
-    // },
+    {
+      "name": "VOT",
+      "type": "python",
+      "request": "launch",
+      "module": "experiments.got10k_experiments",
+      "args": [
+        "--tracker-name",
+        "${input:trackerName}",
+        "--dataset-path",
+        "~/Videos/vot/2019",
+        "--slack-file",
+        "~/.slack_channel.yml",
+        "2019"
+      ]
+    },
     {
       "name": "UAV123",
       "type": "python",
@@ -30,12 +39,6 @@
         "uav123"
       ]
     },
-    // {
-    //   "name": "GOT-10k",
-    //   "type": "python",
-    //   "request": "launch",
-    //   "module": "experiments.run",
-    // },
     {
       "name": "OTB-50",
       "type": "python",
