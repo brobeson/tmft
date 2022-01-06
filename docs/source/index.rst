@@ -29,6 +29,8 @@ Code Reference
 .. toctree::
    :maxdepth: 2
 
+   experiments.report
+   experiments.table
    experiments
    tracking.tmft
 

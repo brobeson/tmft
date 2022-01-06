@@ -68,8 +68,7 @@ def add_name_option(parser: argparse.ArgumentParser) -> None:
         parser (argparse.ArgumentParser): The parser to hold the --tracker-name option.
     """
     parser.add_argument(
-        "--tracker-name",
-        help="The tracker name to use in experiment results and reports.",
+        "--tracker-name", help="The tracker name to use in experiment results and reports.",
     )
 
 
@@ -86,3 +85,29 @@ def add_slack_option(parser: argparse.ArgumentParser) -> None:
         "script will send notifications to the channel in the file.",
         action=PathSanitizer,
     )
+
+
+def print_information(*objects) -> None:
+    """
+    Print an information message to the terminal using blue text.
+
+    Args:
+        objects: The data to print as an information message.
+    """
+    _print_message("\033[94m", *objects)
+
+
+def print_warning(*objects) -> None:
+    """
+    Print a warning message to the terminal using orange text.
+
+    Args:
+        objects: The data to print as a warning.
+    """
+    _print_message("\033[91m", *objects)
+
+
+def _print_message(color: str, *objects) -> None:
+    print(color, end="")
+    print(*objects, end="")
+    print("\033[0m")

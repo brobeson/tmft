@@ -1,8 +1,12 @@
 {
   "cSpell.words": [
-    "Tmft",
+    "bottomrule",
+    "dtype",
+    "hline",
     "ious",
     "ndarray",
+    "pylatex",
+    "Tmft",
     "topk"
   ],
   "restructuredtext.confPath": ""

@@ -7,9 +7,34 @@
       "id": "trackerName",
       "type": "promptString",
       "description": "Name the tracker."
+    },
+    {
+      "id": "reportDir",
+      "type": "promptString",
+      "description": "Write reports to this directory.",
+      "default": "reports"
+    },
+    {
+      "id": "resultDir",
+      "type": "promptString",
+      "description": "Read tracking results from this directory",
+      "default": "results"
     }
   ],
   "tasks": [
+    {
+      "label": "Write Reports",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "-m",
+        "experiments.report",
+        "--report-dir",
+        "${input:reportDir}",
+        "${input:resultDir}"
+      ],
+      "problemMatcher": []
+    },
     {
       "label": "All Experiments",
       "type": "process",

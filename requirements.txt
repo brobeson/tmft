@@ -10,3 +10,6 @@ torch
 # These are necessary to build the documentation.
 Sphinx
 sphinxcontrib-plantuml
+
+# These are necessary to generate experiment reports.
+pylatex
