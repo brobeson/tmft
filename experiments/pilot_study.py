@@ -1,6 +1,7 @@
 """Run a smoke test using a single sequence from OTB-100."""
 
 import argparse
+import json
 import os
 import time
 import numpy
@@ -62,10 +63,15 @@ def main() -> None:
             "mean iou": sequence_result[0],
             "mean time": sequence_result[1],
         }
-    for sequence, results in results.items():
+    for sequence, data in results.items():
         print(sequence)
-        print(f"  Mean IoU = {results['mean iou']:.3f}")
-        print(f"  Mean t   = {results['mean time']:.3f}")
+        print(f"  Mean IoU = {data['mean iou']:.3f}")
+        print(f"  Mean t   = {data['mean time']:.3f}")
+    if arguments.tracker_name:
+        _save_results(
+            arguments.tracker_name,
+            {sequence: data["mean iou"] for sequence, data in results.items()},
+        )
 
 
 def run(
@@ -81,9 +87,8 @@ def run(
     """
     # Ensure the random generators are seeded. This makes the study deterministic; if the test
     # fails, we KNOW it's from our code changes instead of randomness.
-    numpy.random.seed(0)
-    torch.manual_seed(0)
     tmft = tracking.tmft.Tmft(tracking.tmft.read_configuration("tracking/options.yaml"))
+    tmft.opts["random_seed"] = 0
     images, groundtruth = dataset[sequence_name]
     progress_bar.label = sequence_name
     progress_bar.maximum = len(images)
@@ -122,6 +127,7 @@ def _parse_command_line() -> argparse.Namespace:
         description="Run a smoke test using a single OTB-100 sequence.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    experiments.command_line.add_name_option(parser)
     parser.add_argument(
         "sequences",
         help="The sequences to use for the smoke test. The sequence names are case sensitive.",
@@ -130,6 +136,21 @@ def _parse_command_line() -> argparse.Namespace:
     experiments.command_line.add_dataset_path(parser, "~/Videos/otb")
     arguments = parser.parse_args()
     return arguments
+
+
+def _save_results(tracker_name: str, results: dict) -> None:
+    results_path = "results/pilot_results.json"
+    if os.path.isfile(results_path):
+        with open(results_path, "r") as results_file:
+            current_data = json.load(results_file)
+    else:
+        current_data = {}
+    if tracker_name in current_data:
+        current_data[tracker_name]["scores"] = results
+    else:
+        current_data[tracker_name] = {"scores": results, "tags": []}
+    with open(results_path, "w") as results_file:
+        json.dump(current_data, results_file, indent=2)
 
 
 if __name__ == "__main__":

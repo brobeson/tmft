@@ -80,6 +80,8 @@
       "request": "launch",
       "module": "experiments.pilot_study",
       "args": [
+        "--tracker-name",
+        "${input:trackerName}",
         "Car4",
         "Car24",
         "Deer",

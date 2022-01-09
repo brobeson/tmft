@@ -2,7 +2,8 @@ models/*.mat
 smoke_test_results/deer_loss.txt
 test_loss_data/
 reports
-results*
+results/*
+!results/pilot_results.json
 *.pyc
 *.swp
 pretrain/data/
