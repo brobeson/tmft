@@ -184,10 +184,8 @@ def run_tracker(experiment, tracker_name: str, slack_file: str) -> None:
         name=tracker_name,
     )
     notifier.send_message(
-        "Starting "
-        + tracker_name
-        + " experiment at "
-        + datetime.datetime.today().isoformat(sep=" ", timespec="minutes")
+        f"Starting {tracker_name} {str(experiment.dataset.version)} experiment at "
+        f"{datetime.datetime.today().isoformat(sep=' ', timespec='minutes')}"
     )
     try:
         experiment.run(tracker)

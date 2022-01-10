@@ -2,7 +2,23 @@
   // See https://go.microsoft.com/fwlink/?LinkId=733558
   // for the documentation about the tasks.json format
   "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "trackerName",
+      "type": "promptString",
+      "description": "Name the tracker."
+    }
+  ],
   "tasks": [
+    {
+      "label": "All Experiments",
+      "type": "process",
+      "command": "all_experiments.sh",
+      "args": [
+        "${input:trackerName}"
+      ],
+      "problemMatcher": []
+    },
     {
       "label": "Build Documentation",
       "type": "process",
