@@ -132,17 +132,12 @@ def make_experiment(experiment_configuration: argparse.Namespace):
         The GOT-10k experiment to run.
     """
     if experiment_configuration.version in OTB_VERSIONS:
-        experiment = got10k.experiments.ExperimentOTB(
+        return got10k.experiments.ExperimentOTB(
             experiment_configuration.dataset_path,
             experiment_configuration.version,
+            result_dir=experiment_configuration.result_path,
             report_dir=experiment_configuration.report_path,
         )
-        # GOTCHA!
-        # GOT-10k adds a subdirectory to the result directory in
-        # ExperimentOTB.__init__(). I don't want that; it prevents reusing the tracking results
-        # from tb100 for tb50.
-        experiment.result_dir = experiment_configuration.result_path
-        return experiment
     if experiment_configuration.version in VOT_VERSIONS:
         return got10k.experiments.ExperimentVOT(
             experiment_configuration.dataset_path,
