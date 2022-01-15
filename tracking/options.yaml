@@ -1,4 +1,5 @@
 use_gpu: true
+random_seed: 0
 
 # model path
 model_path: models/mdnet_imagenet_vid.pth

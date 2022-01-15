@@ -30,7 +30,7 @@ class Got10kTmft(got10k.trackers.Tracker):
     """
 
     def __init__(self, tracker: tracking.tmft.Tmft, name: str) -> None:
-        super().__init__(name=name, is_deterministic=False)
+        super().__init__(name=name, is_deterministic="random_seed" in tracker.opts)
         self.tracker = tracker
 
     def init(self, image, box):
