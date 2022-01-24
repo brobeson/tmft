@@ -10,6 +10,15 @@
   ],
   "configurations": [
     {
+      "name": "tmft",
+      "type": "python",
+      "request": "launch",
+      "module": "tmft",
+      "args": [
+        "--help"
+      ]
+    },
+    {
       "name": "VOT",
       "type": "python",
       "request": "launch",

@@ -13,4 +13,5 @@ datasets/ILSVRC
 *.pth
 .ropeproject
 docs/build
+docs/source/generated
 training_data/

@@ -1,4 +1,46 @@
-"""Generate tracking reports."""
+"""
+Generate tracking reports.
+
+This module generates tracking reports for known experiment benchmarks, and summary tables of the
+results. You must independently run tracking experiments before using this module.
+
+Running this Module as a Script
+-------------------------------
+
+You can run this module as a stand-alone script.
+
+.. literalinclude:: generated/report_help.rst
+    :language: text
+
+Importing this Module
+---------------------
+
+You can also use this module as part of a larger application.
+
+#. Import this module.
+#. Call :py:func:`fill_command_line_parser()`.
+#. Parse the command line arguments.
+#. Run ``arguments.func(arguments)`` or :py:func:`main()`.
+
+Here is an example of using this module as the sole command line parser::
+
+    import experiments.report as report
+    parser = report.fill_command_line_parser(argparse.ArgumentParser())
+    arguments = parser.parse_args()
+    arguments.func(arguments)
+
+Here is an example of using this module as a subcommand in a larger application::
+
+    import experiments.report as report
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
+    report.fill_command_line_parser(subparsers.add_parser("report"))
+    arguments = parser.parse_args()
+    arguments.func(arguments)
+
+Reference
+---------
+"""
 
 import argparse
 import datetime
@@ -10,37 +52,56 @@ import experiments.command_line as command_line
 import experiments.table as table
 
 
-def _main() -> None:
-    """The main function of the report script."""
-    arguments = _parse_command_line()
-    _print_experiment_reports(arguments.results_dir, arguments.report_dir)
-    _print_pilot_study_report(arguments.results_dir, arguments.report_dir)
-
-
-def _parse_command_line() -> argparse.Namespace:
+def fill_command_line_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """
-    Parse the command line and return the command line arguments.
+    Create the command line parser for this module.
+
+    This function supports filling in a subparser or a root parser. In both cases, this function
+    overwrites certain parser attributes, such as the description.
+
+    Args:
+        parser (argparse.ArgumentParser): Fill out this argument parser. This can be a root parser
+            or a subparser created with `add_subparsers()
+            <https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.add_subparsers>`_.
 
     Returns:
-        argparse.Namespace: The parsed command line arguments.
+        The parser, filled with parameters and attributes, ready for command line parsing.
     """
-    parser = argparse.ArgumentParser(
-        description="Generate tracking reports using the GOT-10k tool.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    parser.description = (
+        "Generate tracking reports using the GOT-10k tool. 'tmft report' reads "
+        "tracking results from experiments, and creates benchmark-specific reports."
+    )
+    parser.formatter_class = argparse.ArgumentDefaultsHelpFormatter
+    parser.set_defaults(func=main)
+    action = command_line.add_tracker_name_parameter(parser)
+    action.help = (
+        "Label the reports with this tracker. Write benchmark reports to this tracker "
+        "subdirectory. Also, use these reports to create the summary table."
     )
     parser.add_argument(
         "--report-dir",
-        help="The path to write the reports.",
-        default=os.path.expanduser("~/repositories/tmft/reports"),
+        help="Write reports to this directory.",
+        default=os.path.abspath("./reports"),
         action=command_line.PathSanitizer,
     )
-    parser.add_argument(
-        "results_dir",
-        help="The path to the experiment results. The child directories must be benchmark-specific "
-        "directories, such as 'OTBtb100'.",
-        action=command_line.PathSanitizer,
-    )
-    return parser.parse_args()
+    command_line.add_results_dir_parameter(parser)
+    return parser
+
+
+def main(arguments: argparse.Namespace) -> None:
+    """
+    The main entry point for this module.
+
+    Typically, you don't need to invoke this function; instead use ``arguments.func()`` after you
+    parse the command line arguments. See :py:func:`fill_command_line_parser()` for examples. If
+    you do need to call this function, do so *after* parsing the command line.
+
+    Args:
+        arguments (argparse.Namespace): The parsed command line arguments. The ``arguments`` must
+            have these attributes: ``results_dir`` and ``report_dir``.
+    """
+    _print_experiment_reports(arguments.results_dir, arguments.report_dir, arguments.tracker_name)
+    _print_pilot_study_report(arguments.results_dir, arguments.report_dir)
 
 
 def _today_label() -> str:
@@ -51,7 +112,7 @@ def _today_label() -> str:
 # ==================================================================================================
 # Experiment Reports
 # ==================================================================================================
-def _print_experiment_reports(results_dir: str, report_dir: str) -> None:
+def _print_experiment_reports(results_dir: str, report_dir: str, primary_tracker: str) -> None:
     """
     Create reports for all the experiments in the results directory.
 
@@ -59,6 +120,8 @@ def _print_experiment_reports(results_dir: str, report_dir: str) -> None:
         results_dir (str): The directory with the experiment results. Each subdirectory must be a
             GOT-10k benchmark, such as 'OTBtb100'.
         report_dir (str): Write the reports to this directory.
+        primary_tracker (str): Use this tracker as the primary tracker in the reports. List this
+            tracker first in the reports, and write report files in this tracker's subdirectory.
     """
     benchmarks = _find_benchmarks(results_dir)
     if not benchmarks:
@@ -66,13 +129,16 @@ def _print_experiment_reports(results_dir: str, report_dir: str) -> None:
     overlap_scores = {}
     robustness_scores = {}
     for benchmark in benchmarks:
-        _generate_experiment_report(results_dir, report_dir, benchmark)
-        benchmark_overlaps, benchmark_robustess = _load_benchmark_overlap_success(
-            report_dir, benchmark
-        )
-        overlap_scores.update(benchmark_overlaps)
-        if benchmark_robustess is not None:
-            robustness_scores.update(benchmark_robustess)
+        _generate_experiment_report(results_dir, report_dir, benchmark, primary_tracker)
+        try:
+            benchmark_overlaps, benchmark_robustess = _load_benchmark_overlap_success(
+                report_dir, benchmark, primary_tracker
+            )
+            overlap_scores.update(benchmark_overlaps)
+            if benchmark_robustess is not None:
+                robustness_scores.update(benchmark_robustess)
+        except OSError as error:
+            command_line.print_warning(error)
     data = _make_experiment_data_table(
         overlap_scores, "Overlap Success", _today_label() + "_overlap_success"
     )
@@ -150,7 +216,9 @@ def _find_benchmarks(results_dir: str) -> list:
     return benchmarks
 
 
-def _generate_experiment_report(result_dir: str, report_dir: str, benchmark: str) -> None:
+def _generate_experiment_report(
+    result_dir: str, report_dir: str, benchmark: str, primary_tracker: str
+) -> None:
     """
     Generate a report for a benchmark.
 
@@ -159,6 +227,8 @@ def _generate_experiment_report(result_dir: str, report_dir: str, benchmark: str
         report_dir (str): The path to write the reports.
         benchmark (str): Generate the report for this benchmark. Examples are 'OTBtb100' and
             'VOT2019'.
+        primary_tracker (str): Use this tracker as the primary tracker in the report. List this
+            tracker first in the report, and write report files in this tracker's subdirectory.
     """
     command_line.print_information("Generating reports for", benchmark)
     try:
@@ -166,8 +236,11 @@ def _generate_experiment_report(result_dir: str, report_dir: str, benchmark: str
     except RuntimeError as error:
         command_line.print_warning(str(error))
         return
-    trackers = _find_trackers(os.path.join(result_dir, benchmark))
-    experiment.report(trackers)
+    try:
+        trackers = _find_trackers(os.path.join(result_dir, benchmark), primary_tracker)
+        experiment.report(trackers)
+    except RuntimeError as error:
+        command_line.print_warning(error)
 
 
 def _make_experiment(result_dir: str, report_dir: str, benchmark: str):
@@ -207,44 +280,53 @@ def _make_experiment(result_dir: str, report_dir: str, benchmark: str):
     raise RuntimeError(f"Unknown benchmark {benchmark}.")
 
 
-def _find_trackers(result_dir: str) -> list:
+def _find_trackers(result_dir: str, primary_tracker: str) -> list:
     """
     Get the trackers available for an experiment benchmark.
 
     Args:
         results (str): The path to the benchmark results.
+        primary_tracker (str): Use this tracker as the primary tracker in the report. This tracker
+            is first in the list of found trackers. If this tracker is not in the found trackers,
+            this function raises a :py:class:`RuntimeError`.
 
     Returns:
         list: The list of trackers found in the benchmark result directory.
+
+    Raises:
+        RuntimeError: This is raised if the ``primary_tracker`` is not in the found trackers.
     """
     trackers = [os.path.basename(tracker) for tracker in glob.glob(os.path.join(result_dir, "*"))]
-    return sorted(trackers)
+    if primary_tracker in trackers:
+        trackers.remove(primary_tracker)
+        trackers.sort()
+        trackers.insert(0, primary_tracker)
+        return trackers
+    raise RuntimeError(f"{primary_tracker} not found.")
 
 
-def _load_benchmark_overlap_success(report_dir: str, benchmark: str) -> tuple:
+def _load_benchmark_overlap_success(report_dir: str, benchmark: str, primary_tracker: str) -> tuple:
     """
     Read overlap success data saved by the benchmark report.
 
     Args:
         report_dir (str): The directory with the reports.
         benchmark (str): The name of the benchmark.
+        primary_tracker (str): Find the performance data under this tracker's subdirectory.
 
     Returns:
         tuple: A tuple of (dict, dict|``None``). The first dictionary is the overlap success data.
         The second dictionary is the VOT robustness data. If ``benchmark`` is not a VOT benchmark,
         the second element of the tuple is ``None``.
+
+    Raises:
+        OSError: This function raises a :py:class:`OSError` if it cannot find the performance data
+        file.
     """
     if benchmark[:3] not in ["OTB", "UAV", "VOT"]:
         raise RuntimeError(f"Unknown benchmark {benchmark}.")
-    file_paths = glob.glob(
-        os.path.join(report_dir, benchmark, "**", "performance.json"), recursive=True
-    )
-    if len(file_paths) > 1:
-        raise RuntimeError(
-            f"Found {len(file_paths)} performance.json files for {benchmark}. I don't know which "
-            "to use."
-        )
-    with open(file_paths[0], "r") as file:
+    file_path = os.path.join(report_dir, benchmark, primary_tracker, "performance.json")
+    with open(file_path, "r") as file:
         data = json.load(file)
     if benchmark[:3] in ["OTB", "UAV"]:
         return (
@@ -359,4 +441,6 @@ def _make_pilot_study_data_table(pilot_results: dict) -> table.DataTable:
 
 
 if __name__ == "__main__":
-    _main()
+    PARSER = fill_command_line_parser(argparse.ArgumentParser())
+    ARGUMENTS = PARSER.parse_args()
+    ARGUMENTS.func(ARGUMENTS)

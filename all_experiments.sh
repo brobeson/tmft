@@ -7,27 +7,30 @@ then
 fi
 
 # Pilot Study
-python3 -m experiments.pilot_study \
+./tmft.py pilot \
   --tracker-name "${1}" \
   Car4 Car24 Deer FleetFace Jump
   
 # VOT 2019
-python3 -m experiments.got10k_experiments \
+./tmft.py experiment \
   --tracker-name "${1}" \
-  --dataset-path ~/Videos/vot/2019 \
+  --dataset-dir ~/Videos/vot/2019 \
   --slack-file ~/.slack_channel.yml \
   2019
 
 # OTB-100
-python3 -m experiments.got10k_experiments \
+./tmft.py experiment \
   --tracker-name "${1}" \
-  --dataset-path ~/Videos/otb \
+  --dataset-dir ~/Videos/otb \
   --slack-file ~/.slack_channel.yml \
   tb100
 
 # UAV123
-python3 -m experiments.got10k_experiments \
+./tmft.py experiment \
   --tracker-name "${1}" \
-  --dataset-path ~/Videos/uav123 \
+  --dataset-dir ~/Videos/uav123 \
   --slack-file ~/.slack_channel.yml \
   uav123
+
+# Reports
+./tmft.py report

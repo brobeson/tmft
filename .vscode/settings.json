@@ -2,11 +2,17 @@
   "cSpell.words": [
     "bottomrule",
     "dtype",
+    "genindex",
     "hline",
     "ious",
+    "literalinclude",
+    "maxdepth",
+    "modindex",
     "ndarray",
     "pylatex",
+    "quickstart",
     "Tmft",
+    "toctree",
     "topk"
   ],
   "restructuredtext.confPath": ""

@@ -6,7 +6,8 @@
     {
       "id": "trackerName",
       "type": "promptString",
-      "description": "Name the tracker."
+      "description": "Name the tracker.",
+      "default": "TMFT"
     },
     {
       "id": "reportDir",

@@ -49,9 +49,7 @@ class SlackReporter:
     def __reply_to_thread(self, message: str) -> None:
         try:
             self.__client.chat_postMessage(
-                channel=self.__channel,
-                thread_ts=self.__ts,
-                text=self.__format_message(message),
+                channel=self.__channel, thread_ts=self.__ts, text=self.__format_message(message),
             )
         except SlackApiError as e:
             print(e)

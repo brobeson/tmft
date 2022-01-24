@@ -13,7 +13,6 @@ User Guide
    :maxdepth: 1
 
    user_guide
-   tmft_configuration
 
 Developer Guide
 ---------------
@@ -21,18 +20,29 @@ Developer Guide
 .. toctree::
    :maxdepth: 1
 
-   developer_guide
 
 Code Reference
 --------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
+   experiments.command_line
+   experiments.experiment
+   experiments.pilot_study
    experiments.report
+   experiments.slack_reporter
    experiments.table
-   experiments
+
+Clean These Up
+--------------
+
+.. toctree::
+
    tracking.tmft
+   developer_guide
+   tmft_configuration
+
 
 Indices and Tables
 ------------------
