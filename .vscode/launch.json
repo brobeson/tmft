@@ -15,7 +15,14 @@
       "request": "launch",
       "module": "tmft",
       "args": [
-        "--help"
+        "report",
+        "--results-dir",
+        "results/distance_mining",
+        "--transpose-tables",
+        "--report-dir",
+        "reports/transpose_test",
+        "--tracker-name",
+        "Distance"
       ]
     },
     {

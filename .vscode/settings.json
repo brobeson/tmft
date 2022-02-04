@@ -13,7 +13,8 @@
     "quickstart",
     "Tmft",
     "toctree",
-    "topk"
+    "topk",
+    "vstack"
   ],
   "restructuredtext.confPath": ""
 }

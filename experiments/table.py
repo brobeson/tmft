@@ -1,5 +1,6 @@
 """Represents tracking results in a table format."""
 
+import copy
 import os.path
 import subprocess
 import numpy
@@ -15,6 +16,11 @@ class FormatSpec:
         include_median (bool): Print a row with the median of each column.
         mark_best (bool): Mark the best score in each row, including special rows. This only applies
             to data tables with more than one column.
+
+            .. warning::
+
+                This option does not work well with ``transpose``.
+
         places (int): The number of places to print after the decimal point.
         pretty_format (bool): After writing a source file, run a format tool on the file. For
             example, after writing the table in a LaTeX file, run ``latexindent`` on the file.
@@ -22,14 +28,18 @@ class FormatSpec:
             .. warning::
 
                 This is disabled; it generates too many intermediate garbage files.
+
+        transpose (bool): Tranpose the table output. Print the rows as columns, and print the
+            columns as rows.
     """
 
     def __init__(self):
         self.include_mean = True
         self.include_median = True
-        self.mark_best = True
+        self.mark_best = False
         self.places = 3
         self.pretty_format = False
+        self.transpose = False
 
 
 class DataTable:
@@ -125,11 +135,39 @@ def write_table(data: DataTable, file_path: str) -> None:
         ValueError: The function raises this exception if it cannot determine the content type
             from the file extension.
     """
+    data_to_print = _finalize_data_table(data)
     extension = os.path.splitext(file_path)[1]
     if extension == ".tex":
-        _write_latex_table(data, file_path)
+        _write_latex_table(data_to_print, file_path)
     else:
         raise ValueError(f"Unknown table type '{extension}'")
+
+
+def _finalize_data_table(data: DataTable) -> DataTable:
+    """
+    Copy a data table and make all change necessary to print the data according to the format
+    specification.
+
+    Args:
+        data (DataTable): Finalize this DataTable.
+
+    Returns:
+        DataTable: A copy of the source ``data``, ready for printing.
+    """
+    final_data = copy.deepcopy(data)
+    if final_data.format_spec.include_mean and number_of_rows(data) > 1:
+        final_data.data = numpy.vstack([final_data.data, numpy.nanmean(data.data, axis=0)])
+        final_data.row_labels.append("Mean")
+    if final_data.format_spec.include_median and number_of_rows(data) > 1:
+        final_data.data = numpy.vstack([final_data.data, numpy.nanmedian(data.data, axis=0)])
+        final_data.row_labels.append("Median")
+    if final_data.format_spec.transpose:
+        final_data.data = numpy.transpose(final_data.data)
+        final_data.row_labels, final_data.column_labels = (
+            final_data.column_labels,
+            final_data.row_labels,
+        )
+    return final_data
 
 
 # ==================================================================================================
@@ -179,29 +217,32 @@ def _make_latex_table(data: DataTable) -> pylatex.Table:
                 table.add_caption(pylatex.NoEscape(rf"{data.caption}\label{{table:{data.label}}}"))
             else:
                 table.add_caption(pylatex.NoEscape(data.caption))
-        table_spec = "l" + "S" * data.shape[1]
+        table_spec = _make_latex_table_spec(data)
         with table.create(pylatex.Tabular(table_spec, booktabs=True)) as tabular:
             _write_latex_column_labels(tabular, data.column_labels)
             for row_index in range(data.shape[0]):
                 _write_latex_row(
                     tabular, data.row_labels[row_index], data[row_index], data.format_spec
                 )
-            if number_of_rows(data) > 1 and (
-                data.format_spec.include_mean or data.format_spec.include_median
-            ):
-                tabular.add_hline()
-                if data.format_spec.include_mean:
-                    _write_latex_row(
-                        tabular, "Mean", numpy.nanmean(data.data, axis=0), data.format_spec
-                    )
-                if data.format_spec.include_median:
-                    _write_latex_row(
-                        tabular,
-                        "Median",
-                        numpy.nanmedian(data.data, axis=0),
-                        data.format_spec,
-                    )
     return table
+
+
+def _make_latex_table_spec(data: DataTable) -> str:
+    """
+    Make the specification for the LaTeX table.
+
+    Args:
+        data (DataTable): Create a table spec for this DataTable.
+
+    Returns:
+        str: The LaTeX table spec suitable for the given ``data``.
+    """
+    if data.format_spec.transpose and data.shape[1] > 1:
+        if data.format_spec.include_median and data.format_spec.include_mean:
+            return "l" + "c" * (data.shape[1] - 2) + "|" + "cc"
+        if data.format_spec.include_median or data.format_spec.include_mean:
+            return "l" + "c" * (data.shape[1] - 1) + "|" + "c"
+    return "l" + "c" * data.shape[1]
 
 
 def _write_latex_column_labels(table: pylatex.Tabular, labels: list) -> None:

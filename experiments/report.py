@@ -84,6 +84,11 @@ def fill_command_line_parser(parser: argparse.ArgumentParser) -> argparse.Argume
         default=os.path.abspath("./reports"),
         action=command_line.PathSanitizer,
     )
+    parser.add_argument(
+        "--transpose-tables",
+        help="Transpose summary tables before writing them.",
+        action="store_true",
+    )
     command_line.add_results_dir_parameter(parser)
     return parser
 
@@ -100,8 +105,15 @@ def main(arguments: argparse.Namespace) -> None:
         arguments (argparse.Namespace): The parsed command line arguments. The ``arguments`` must
             have these attributes: ``results_dir`` and ``report_dir``.
     """
-    _print_experiment_reports(arguments.results_dir, arguments.report_dir, arguments.tracker_name)
-    _print_pilot_study_report(arguments.results_dir, arguments.report_dir)
+    _print_experiment_reports(
+        arguments.results_dir,
+        arguments.report_dir,
+        arguments.tracker_name,
+        arguments.transpose_tables,
+    )
+    _print_pilot_study_report(
+        arguments.results_dir, arguments.report_dir, arguments.transpose_tables
+    )
 
 
 def _today_label() -> str:
@@ -112,7 +124,9 @@ def _today_label() -> str:
 # ==================================================================================================
 # Experiment Reports
 # ==================================================================================================
-def _print_experiment_reports(results_dir: str, report_dir: str, primary_tracker: str) -> None:
+def _print_experiment_reports(
+    results_dir: str, report_dir: str, primary_tracker: str, transpose_tables: bool
+) -> None:
     """
     Create reports for all the experiments in the results directory.
 
@@ -122,6 +136,7 @@ def _print_experiment_reports(results_dir: str, report_dir: str, primary_tracker
         report_dir (str): Write the reports to this directory.
         primary_tracker (str): Use this tracker as the primary tracker in the reports. List this
             tracker first in the reports, and write report files in this tracker's subdirectory.
+        transpose_tables (bool): Transpose the summary tables before writing them.
     """
     benchmarks = _find_benchmarks(results_dir)
     if not benchmarks:
@@ -142,11 +157,13 @@ def _print_experiment_reports(results_dir: str, report_dir: str, primary_tracker
     data = _make_experiment_data_table(
         overlap_scores, "Overlap Success", _today_label() + "_overlap_success"
     )
+    data.format_spec.transpose = transpose_tables
     table.write_table(data, os.path.join(report_dir, "experiment_summary.tex"))
     if robustness_scores:
         data = _make_experiment_data_table(
             robustness_scores, "VOT Robustness", _today_label() + "_vot_robustness"
         )
+        data.format_spec.transpose = transpose_tables
         table.write_table(data, os.path.join(report_dir, "vot_robustness.tex"))
 
 
@@ -265,9 +282,7 @@ def _make_experiment(result_dir: str, report_dir: str, benchmark: str):
         )
     if benchmark == "UAV123":
         return got10k.experiments.ExperimentUAV123(
-            os.path.expanduser("~/Videos/uav123"),
-            result_dir=result_dir,
-            report_dir=report_dir,
+            os.path.expanduser("~/Videos/uav123"), result_dir=result_dir, report_dir=report_dir,
         )
     if benchmark[:3] == "VOT":
         return got10k.experiments.ExperimentVOT(
@@ -375,17 +390,19 @@ def _benchmark_to_table_entry(benchmark: str) -> str:
 # ==================================================================================================
 # Pilot Study Report
 # ==================================================================================================
-def _print_pilot_study_report(results_dir: str, report_dir: str) -> None:
+def _print_pilot_study_report(results_dir: str, report_dir: str, transpose_table: bool) -> None:
     """
     Create the pilot study report as a table.
 
     Args:
         results_dir (str): The directory containing the pilot study results database.
         report_dir (str): Write the LaTeX file in this directory.
+        transpose_table (bool): Transpose the results table before writing it.
     """
     try:
         results = _load_pilot_study_database(results_dir)
         data_table = _make_pilot_study_data_table(results)
+        data_table.format_spec.transpose = transpose_table
         table.write_table(data_table, os.path.join(report_dir, "pilot_study.tex"))
     except RuntimeError as error:
         command_line.print_warning(str(error))
