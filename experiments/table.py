@@ -139,6 +139,8 @@ def write_table(data: DataTable, file_path: str) -> None:
     extension = os.path.splitext(file_path)[1]
     if extension == ".tex":
         _write_latex_table(data_to_print, file_path)
+    if extension == ".csv":
+        _write_csv_table(data_to_print, file_path)
     else:
         raise ValueError(f"Unknown table type '{extension}'")
 
@@ -168,6 +170,34 @@ def _finalize_data_table(data: DataTable) -> DataTable:
             final_data.row_labels,
         )
     return final_data
+
+
+# ==================================================================================================
+# CSV tables
+# ==================================================================================================
+def _write_csv_table(data: DataTable, file_path: str) -> None:
+    """
+    Write a data table to a CSV file.
+
+    Args:
+        data (DataTable): Write this ``DataTable``.
+        file_path (str): Write the ``data`` to this file.
+    """
+    with open(file_path, "w") as csv_file:
+        csv_file.write(",")
+        csv_file.write(",".join(data.column_labels))
+        csv_file.write("\n")
+        for row_index in range(data.shape[0]):
+            csv_file.write(f"{data.row_labels[row_index]},")
+            csv_file.write(
+                ",".join(
+                    [
+                        f"{d:.{data.format_spec.places}f}" if numpy.isfinite(d) else ""
+                        for d in data[row_index]
+                    ]
+                )
+            )
+            csv_file.write("\n")
 
 
 # ==================================================================================================
